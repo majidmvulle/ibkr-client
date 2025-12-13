@@ -1,0 +1,19 @@
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+lint:
+  use:
+    - STANDARD
+    - TIMESTAMP_SUFFIX
+breaking:
+  use:
+    - FILE
+
+plugins:
+  # Make sure you install buf-plugin-timestamp-suffix
+  # go install buf.build/go/bufplugin/check/internal/example/cmd/buf-plugin-timestamp-suffix@latest
+  - plugin: buf-plugin-timestamp-suffix
+    options:
+      timestamp_suffix: _at
+
+deps:
+  - buf.build/bufbuild/protovalidate:v1.1.0

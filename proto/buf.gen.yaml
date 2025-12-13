@@ -1,0 +1,25 @@
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.11
+    out: gen/go/
+    opt:
+      - paths=source_relative
+
+  - remote: buf.build/connectrpc/go:v1.19.1
+    out: gen/go/
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=true
+
+  - remote: buf.build/bufbuild/es:v2.10.1
+    out: gen/ts
+    opt:
+      - target=ts
+
+managed:
+  enabled: true
+  # Don't modify any file option or field option for protovalidate. Without
+  # this, generated Go will fail to compile.
+  disable:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate

@@ -1,0 +1,236 @@
+version: "2"
+run:
+  concurrency: 4
+  go: "1.22"
+  modules-download-mode: readonly
+  issues-exit-code: 2
+  tests: false
+  allow-parallel-runners: true
+  allow-serial-runners: true
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: false
+      print-issued-lines: false
+  sort-order:
+    - linter
+    - severity
+    - file
+  path-prefix: ""
+linters:
+  enable:
+    - asciicheck
+    - bidichk
+    - containedctx
+    - copyloopvar
+    - cyclop
+    - decorder
+    - dogsled
+    - dupword
+    - durationcheck
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocyclo
+    - godot
+    - godox
+    - goheader
+    - gomodguard
+    - goprintffuncname
+    - grouper
+    - importas
+    - inamedparam
+    - interfacebloat
+    - lll
+    - maintidx
+    - makezero
+    - misspell
+    - mnd
+    - nakedret
+    - nestif
+    - nilnil
+    - nlreturn
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - promlinter
+    - tagalign
+    - testpackage
+    - unconvert
+    - varnamelen
+    - whitespace
+    - wsl
+  disable:
+    - depguard
+    - dupl
+    - errcheck
+    - gochecknoglobals
+    - gomoddirectives
+    - govet
+    - nolintlint
+    - staticcheck
+    - tagliatelle
+    - testableexamples
+    - unused
+    - usestdlibvars
+  settings:
+    cyclop:
+      max-complexity: 10
+      package-average: 7
+    decorder:
+      dec-order:
+        - const
+        - var
+        - type
+        - func
+      disable-dec-num-check: true
+      disable-dec-order-check: false
+      disable-init-func-first-check: false
+    dupl:
+      threshold: 100
+    errorlint:
+      asserts: false
+    gocognit:
+      min-complexity: 10
+    godot:
+      scope: all
+    godox:
+      keywords:
+        - TODO
+        - FIXME
+        - NOTE
+        - OPTIMIZE
+        - HACK
+    importas:
+      no-extra-aliases: false
+    lll:
+      line-length: 120
+      tab-width: 1
+    makezero:
+      always: true
+    revive:
+      max-open-files: 2048
+      severity: error
+      enable-all-rules: true
+      rules:
+        - name: cognitive-complexity
+          arguments:
+            - 7
+          severity: warning
+          disabled: false
+        - name: function-result-limit
+          arguments:
+            - 3
+          severity: warning
+          disabled: false
+        - name: max-public-structs
+          arguments:
+            - 3
+          severity: warning
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: cyclomatic
+          arguments:
+            - 10
+          severity: warning
+          disabled: false
+        - name: banned-characters
+          arguments:
+            - Ω
+            - Σ
+            - σ
+            - "7"
+          severity: warning
+          disabled: false
+        - name: argument-limit
+          arguments:
+            - 4
+          severity: warning
+          disabled: false
+        - name: function-length
+          arguments:
+            - 25
+            - 50
+          severity: warning
+          disabled: false
+        - name: var-naming
+          disabled: true
+        - name: empty-lines
+          disabled: true
+        - name: nested-structs
+          disabled: true
+        - name: blank-imports
+          disabled: true
+        - name: exported
+          arguments:
+            - checkPrivateReceivers
+          severity: error
+          disabled: false
+        - name: package-comments
+          severity: error
+          disabled: false
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+    varnamelen:
+      max-distance: 6
+      min-name-length: 2
+      ignore-names:
+        - err
+        - id
+        - tx
+        - db
+        - g
+        - w
+      ignore-decls:
+        - c echo.Context
+        - c context.Context
+        - c *gin.Context
+        - t testing.T
+        - f *foo.Bar
+        - e error
+        - i int
+        - const C
+        - T any
+        - m map[string]int
+    whitespace:
+      multi-if: true
+      multi-func: false
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - execinquery
+        path: client\.go
+      - linters:
+          - execinquery
+        path: (.+)_test\.go
+      - linters:
+          - cyclop
+        path: (.+)_test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  uniq-by-line: false
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
