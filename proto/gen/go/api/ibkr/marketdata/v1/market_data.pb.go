@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: api/ibkr/market_data/v1/market_data.proto
+// source: api/ibkr/marketdata/v1/market_data.proto
 
-package market_datav1
+package marketdatav1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
@@ -32,7 +32,7 @@ type GetQuoteRequest struct {
 
 func (x *GetQuoteRequest) Reset() {
 	*x = GetQuoteRequest{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[0]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *GetQuoteRequest) String() string {
 func (*GetQuoteRequest) ProtoMessage() {}
 
 func (x *GetQuoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[0]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *GetQuoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetQuoteRequest.ProtoReflect.Descriptor instead.
 func (*GetQuoteRequest) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{0}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetQuoteRequest) GetSymbol() string {
@@ -77,7 +77,7 @@ type GetQuoteResponse struct {
 
 func (x *GetQuoteResponse) Reset() {
 	*x = GetQuoteResponse{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[1]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -89,7 +89,7 @@ func (x *GetQuoteResponse) String() string {
 func (*GetQuoteResponse) ProtoMessage() {}
 
 func (x *GetQuoteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[1]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -102,7 +102,7 @@ func (x *GetQuoteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetQuoteResponse.ProtoReflect.Descriptor instead.
 func (*GetQuoteResponse) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{1}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetQuoteResponse) GetQuote() *Quote {
@@ -131,7 +131,7 @@ type Quote struct {
 
 func (x *Quote) Reset() {
 	*x = Quote{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[2]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -143,7 +143,7 @@ func (x *Quote) String() string {
 func (*Quote) ProtoMessage() {}
 
 func (x *Quote) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[2]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -156,7 +156,7 @@ func (x *Quote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Quote.ProtoReflect.Descriptor instead.
 func (*Quote) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{2}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Quote) GetSymbol() string {
@@ -242,7 +242,7 @@ type GetHistoricalDataRequest struct {
 
 func (x *GetHistoricalDataRequest) Reset() {
 	*x = GetHistoricalDataRequest{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[3]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -254,7 +254,7 @@ func (x *GetHistoricalDataRequest) String() string {
 func (*GetHistoricalDataRequest) ProtoMessage() {}
 
 func (x *GetHistoricalDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[3]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -267,7 +267,7 @@ func (x *GetHistoricalDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHistoricalDataRequest.ProtoReflect.Descriptor instead.
 func (*GetHistoricalDataRequest) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{3}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetHistoricalDataRequest) GetSymbol() string {
@@ -308,7 +308,7 @@ type GetHistoricalDataResponse struct {
 
 func (x *GetHistoricalDataResponse) Reset() {
 	*x = GetHistoricalDataResponse{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[4]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -320,7 +320,7 @@ func (x *GetHistoricalDataResponse) String() string {
 func (*GetHistoricalDataResponse) ProtoMessage() {}
 
 func (x *GetHistoricalDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[4]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -333,7 +333,7 @@ func (x *GetHistoricalDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHistoricalDataResponse.ProtoReflect.Descriptor instead.
 func (*GetHistoricalDataResponse) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{4}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetHistoricalDataResponse) GetBars() []*Bar {
@@ -358,7 +358,7 @@ type Bar struct {
 
 func (x *Bar) Reset() {
 	*x = Bar{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[5]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +370,7 @@ func (x *Bar) String() string {
 func (*Bar) ProtoMessage() {}
 
 func (x *Bar) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[5]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +383,7 @@ func (x *Bar) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bar.ProtoReflect.Descriptor instead.
 func (*Bar) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{5}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Bar) GetTimestamp() string {
@@ -438,7 +438,7 @@ type StreamQuotesRequest struct {
 
 func (x *StreamQuotesRequest) Reset() {
 	*x = StreamQuotesRequest{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[6]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -450,7 +450,7 @@ func (x *StreamQuotesRequest) String() string {
 func (*StreamQuotesRequest) ProtoMessage() {}
 
 func (x *StreamQuotesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[6]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -463,7 +463,7 @@ func (x *StreamQuotesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamQuotesRequest.ProtoReflect.Descriptor instead.
 func (*StreamQuotesRequest) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{6}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *StreamQuotesRequest) GetSymbol() string {
@@ -483,7 +483,7 @@ type StreamQuotesResponse struct {
 
 func (x *StreamQuotesResponse) Reset() {
 	*x = StreamQuotesResponse{}
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[7]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -495,7 +495,7 @@ func (x *StreamQuotesResponse) String() string {
 func (*StreamQuotesResponse) ProtoMessage() {}
 
 func (x *StreamQuotesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_ibkr_market_data_v1_market_data_proto_msgTypes[7]
+	mi := &file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -508,7 +508,7 @@ func (x *StreamQuotesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamQuotesResponse.ProtoReflect.Descriptor instead.
 func (*StreamQuotesResponse) Descriptor() ([]byte, []int) {
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP(), []int{7}
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *StreamQuotesResponse) GetQuote() *Quote {
@@ -518,15 +518,15 @@ func (x *StreamQuotesResponse) GetQuote() *Quote {
 	return nil
 }
 
-var File_api_ibkr_market_data_v1_market_data_proto protoreflect.FileDescriptor
+var File_api_ibkr_marketdata_v1_market_data_proto protoreflect.FileDescriptor
 
-const file_api_ibkr_market_data_v1_market_data_proto_rawDesc = "" +
+const file_api_ibkr_marketdata_v1_market_data_proto_rawDesc = "" +
 	"\n" +
-	")api/ibkr/market_data/v1/market_data.proto\x12\x17api.ibkr.market_data.v1\x1a\x1bbuf/validate/validate.proto\"A\n" +
+	"(api/ibkr/marketdata/v1/market_data.proto\x12\x16api.ibkr.marketdata.v1\x1a\x1bbuf/validate/validate.proto\"A\n" +
 	"\x0fGetQuoteRequest\x12.\n" +
-	"\x06symbol\x18\x01 \x01(\tB\x16\xbaH\x13r\x11\x10\x01\x18\x142\v^[A-Z0-9]+$R\x06symbol\"H\n" +
-	"\x10GetQuoteResponse\x124\n" +
-	"\x05quote\x18\x01 \x01(\v2\x1e.api.ibkr.market_data.v1.QuoteR\x05quote\"\xdd\x01\n" +
+	"\x06symbol\x18\x01 \x01(\tB\x16\xbaH\x13r\x11\x10\x01\x18\x142\v^[A-Z0-9]+$R\x06symbol\"G\n" +
+	"\x10GetQuoteResponse\x123\n" +
+	"\x05quote\x18\x01 \x01(\v2\x1d.api.ibkr.marketdata.v1.QuoteR\x05quote\"\xdd\x01\n" +
 	"\x05Quote\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x10\n" +
 	"\x03bid\x18\x02 \x01(\x01R\x03bid\x12\x10\n" +
@@ -547,9 +547,9 @@ const file_api_ibkr_market_data_v1_market_data_proto_rawDesc = "" +
 	"R\abarSize\x12%\n" +
 	"\x05limit\x18\x04 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\x90N(\x01H\x00R\x05limit\x88\x01\x01B\b\n" +
-	"\x06_limit\"M\n" +
-	"\x19GetHistoricalDataResponse\x120\n" +
-	"\x04bars\x18\x01 \x03(\v2\x1c.api.ibkr.market_data.v1.BarR\x04bars\"\x8b\x01\n" +
+	"\x06_limit\"L\n" +
+	"\x19GetHistoricalDataResponse\x12/\n" +
+	"\x04bars\x18\x01 \x03(\v2\x1b.api.ibkr.marketdata.v1.BarR\x04bars\"\x8b\x01\n" +
 	"\x03Bar\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\tR\ttimestamp\x12\x12\n" +
 	"\x04open\x18\x02 \x01(\x01R\x04open\x12\x12\n" +
@@ -558,48 +558,48 @@ const file_api_ibkr_market_data_v1_market_data_proto_rawDesc = "" +
 	"\x05close\x18\x05 \x01(\x01R\x05close\x12\x16\n" +
 	"\x06volume\x18\x06 \x01(\x03R\x06volume\"E\n" +
 	"\x13StreamQuotesRequest\x12.\n" +
-	"\x06symbol\x18\x01 \x01(\tB\x16\xbaH\x13r\x11\x10\x01\x18\x142\v^[A-Z0-9]+$R\x06symbol\"L\n" +
-	"\x14StreamQuotesResponse\x124\n" +
-	"\x05quote\x18\x01 \x01(\v2\x1e.api.ibkr.market_data.v1.QuoteR\x05quote2\xdf\x02\n" +
-	"\x11MarketDataService\x12_\n" +
-	"\bGetQuote\x12(.api.ibkr.market_data.v1.GetQuoteRequest\x1a).api.ibkr.market_data.v1.GetQuoteResponse\x12z\n" +
-	"\x11GetHistoricalData\x121.api.ibkr.market_data.v1.GetHistoricalDataRequest\x1a2.api.ibkr.market_data.v1.GetHistoricalDataResponse\x12m\n" +
-	"\fStreamQuotes\x12,.api.ibkr.market_data.v1.StreamQuotesRequest\x1a-.api.ibkr.market_data.v1.StreamQuotesResponse0\x01B\xff\x01\n" +
-	"\x1bcom.api.ibkr.market_data.v1B\x0fMarketDataProtoP\x01ZTgithub.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/marketdata/v1;market_datav1\xa2\x02\x03AIM\xaa\x02\x16Api.Ibkr.MarketData.V1\xca\x02\x16Api\\Ibkr\\MarketData\\V1\xe2\x02\"Api\\Ibkr\\MarketData\\V1\\GPBMetadata\xea\x02\x19Api::Ibkr::MarketData::V1b\x06proto3"
+	"\x06symbol\x18\x01 \x01(\tB\x16\xbaH\x13r\x11\x10\x01\x18\x142\v^[A-Z0-9]+$R\x06symbol\"K\n" +
+	"\x14StreamQuotesResponse\x123\n" +
+	"\x05quote\x18\x01 \x01(\v2\x1d.api.ibkr.marketdata.v1.QuoteR\x05quote2\xd9\x02\n" +
+	"\x11MarketDataService\x12]\n" +
+	"\bGetQuote\x12'.api.ibkr.marketdata.v1.GetQuoteRequest\x1a(.api.ibkr.marketdata.v1.GetQuoteResponse\x12x\n" +
+	"\x11GetHistoricalData\x120.api.ibkr.marketdata.v1.GetHistoricalDataRequest\x1a1.api.ibkr.marketdata.v1.GetHistoricalDataResponse\x12k\n" +
+	"\fStreamQuotes\x12+.api.ibkr.marketdata.v1.StreamQuotesRequest\x1a,.api.ibkr.marketdata.v1.StreamQuotesResponse0\x01B\xfd\x01\n" +
+	"\x1acom.api.ibkr.marketdata.v1B\x0fMarketDataProtoP\x01ZSgithub.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/marketdata/v1;marketdatav1\xa2\x02\x03AIM\xaa\x02\x16Api.Ibkr.Marketdata.V1\xca\x02\x16Api\\Ibkr\\Marketdata\\V1\xe2\x02\"Api\\Ibkr\\Marketdata\\V1\\GPBMetadata\xea\x02\x19Api::Ibkr::Marketdata::V1b\x06proto3"
 
 var (
-	file_api_ibkr_market_data_v1_market_data_proto_rawDescOnce sync.Once
-	file_api_ibkr_market_data_v1_market_data_proto_rawDescData []byte
+	file_api_ibkr_marketdata_v1_market_data_proto_rawDescOnce sync.Once
+	file_api_ibkr_marketdata_v1_market_data_proto_rawDescData []byte
 )
 
-func file_api_ibkr_market_data_v1_market_data_proto_rawDescGZIP() []byte {
-	file_api_ibkr_market_data_v1_market_data_proto_rawDescOnce.Do(func() {
-		file_api_ibkr_market_data_v1_market_data_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_ibkr_market_data_v1_market_data_proto_rawDesc), len(file_api_ibkr_market_data_v1_market_data_proto_rawDesc)))
+func file_api_ibkr_marketdata_v1_market_data_proto_rawDescGZIP() []byte {
+	file_api_ibkr_marketdata_v1_market_data_proto_rawDescOnce.Do(func() {
+		file_api_ibkr_marketdata_v1_market_data_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_ibkr_marketdata_v1_market_data_proto_rawDesc), len(file_api_ibkr_marketdata_v1_market_data_proto_rawDesc)))
 	})
-	return file_api_ibkr_market_data_v1_market_data_proto_rawDescData
+	return file_api_ibkr_marketdata_v1_market_data_proto_rawDescData
 }
 
-var file_api_ibkr_market_data_v1_market_data_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_api_ibkr_market_data_v1_market_data_proto_goTypes = []any{
-	(*GetQuoteRequest)(nil),           // 0: api.ibkr.market_data.v1.GetQuoteRequest
-	(*GetQuoteResponse)(nil),          // 1: api.ibkr.market_data.v1.GetQuoteResponse
-	(*Quote)(nil),                     // 2: api.ibkr.market_data.v1.Quote
-	(*GetHistoricalDataRequest)(nil),  // 3: api.ibkr.market_data.v1.GetHistoricalDataRequest
-	(*GetHistoricalDataResponse)(nil), // 4: api.ibkr.market_data.v1.GetHistoricalDataResponse
-	(*Bar)(nil),                       // 5: api.ibkr.market_data.v1.Bar
-	(*StreamQuotesRequest)(nil),       // 6: api.ibkr.market_data.v1.StreamQuotesRequest
-	(*StreamQuotesResponse)(nil),      // 7: api.ibkr.market_data.v1.StreamQuotesResponse
+var file_api_ibkr_marketdata_v1_market_data_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_ibkr_marketdata_v1_market_data_proto_goTypes = []any{
+	(*GetQuoteRequest)(nil),           // 0: api.ibkr.marketdata.v1.GetQuoteRequest
+	(*GetQuoteResponse)(nil),          // 1: api.ibkr.marketdata.v1.GetQuoteResponse
+	(*Quote)(nil),                     // 2: api.ibkr.marketdata.v1.Quote
+	(*GetHistoricalDataRequest)(nil),  // 3: api.ibkr.marketdata.v1.GetHistoricalDataRequest
+	(*GetHistoricalDataResponse)(nil), // 4: api.ibkr.marketdata.v1.GetHistoricalDataResponse
+	(*Bar)(nil),                       // 5: api.ibkr.marketdata.v1.Bar
+	(*StreamQuotesRequest)(nil),       // 6: api.ibkr.marketdata.v1.StreamQuotesRequest
+	(*StreamQuotesResponse)(nil),      // 7: api.ibkr.marketdata.v1.StreamQuotesResponse
 }
-var file_api_ibkr_market_data_v1_market_data_proto_depIdxs = []int32{
-	2, // 0: api.ibkr.market_data.v1.GetQuoteResponse.quote:type_name -> api.ibkr.market_data.v1.Quote
-	5, // 1: api.ibkr.market_data.v1.GetHistoricalDataResponse.bars:type_name -> api.ibkr.market_data.v1.Bar
-	2, // 2: api.ibkr.market_data.v1.StreamQuotesResponse.quote:type_name -> api.ibkr.market_data.v1.Quote
-	0, // 3: api.ibkr.market_data.v1.MarketDataService.GetQuote:input_type -> api.ibkr.market_data.v1.GetQuoteRequest
-	3, // 4: api.ibkr.market_data.v1.MarketDataService.GetHistoricalData:input_type -> api.ibkr.market_data.v1.GetHistoricalDataRequest
-	6, // 5: api.ibkr.market_data.v1.MarketDataService.StreamQuotes:input_type -> api.ibkr.market_data.v1.StreamQuotesRequest
-	1, // 6: api.ibkr.market_data.v1.MarketDataService.GetQuote:output_type -> api.ibkr.market_data.v1.GetQuoteResponse
-	4, // 7: api.ibkr.market_data.v1.MarketDataService.GetHistoricalData:output_type -> api.ibkr.market_data.v1.GetHistoricalDataResponse
-	7, // 8: api.ibkr.market_data.v1.MarketDataService.StreamQuotes:output_type -> api.ibkr.market_data.v1.StreamQuotesResponse
+var file_api_ibkr_marketdata_v1_market_data_proto_depIdxs = []int32{
+	2, // 0: api.ibkr.marketdata.v1.GetQuoteResponse.quote:type_name -> api.ibkr.marketdata.v1.Quote
+	5, // 1: api.ibkr.marketdata.v1.GetHistoricalDataResponse.bars:type_name -> api.ibkr.marketdata.v1.Bar
+	2, // 2: api.ibkr.marketdata.v1.StreamQuotesResponse.quote:type_name -> api.ibkr.marketdata.v1.Quote
+	0, // 3: api.ibkr.marketdata.v1.MarketDataService.GetQuote:input_type -> api.ibkr.marketdata.v1.GetQuoteRequest
+	3, // 4: api.ibkr.marketdata.v1.MarketDataService.GetHistoricalData:input_type -> api.ibkr.marketdata.v1.GetHistoricalDataRequest
+	6, // 5: api.ibkr.marketdata.v1.MarketDataService.StreamQuotes:input_type -> api.ibkr.marketdata.v1.StreamQuotesRequest
+	1, // 6: api.ibkr.marketdata.v1.MarketDataService.GetQuote:output_type -> api.ibkr.marketdata.v1.GetQuoteResponse
+	4, // 7: api.ibkr.marketdata.v1.MarketDataService.GetHistoricalData:output_type -> api.ibkr.marketdata.v1.GetHistoricalDataResponse
+	7, // 8: api.ibkr.marketdata.v1.MarketDataService.StreamQuotes:output_type -> api.ibkr.marketdata.v1.StreamQuotesResponse
 	6, // [6:9] is the sub-list for method output_type
 	3, // [3:6] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -607,27 +607,27 @@ var file_api_ibkr_market_data_v1_market_data_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_api_ibkr_market_data_v1_market_data_proto_init() }
-func file_api_ibkr_market_data_v1_market_data_proto_init() {
-	if File_api_ibkr_market_data_v1_market_data_proto != nil {
+func init() { file_api_ibkr_marketdata_v1_market_data_proto_init() }
+func file_api_ibkr_marketdata_v1_market_data_proto_init() {
+	if File_api_ibkr_marketdata_v1_market_data_proto != nil {
 		return
 	}
-	file_api_ibkr_market_data_v1_market_data_proto_msgTypes[3].OneofWrappers = []any{}
+	file_api_ibkr_marketdata_v1_market_data_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_ibkr_market_data_v1_market_data_proto_rawDesc), len(file_api_ibkr_market_data_v1_market_data_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_ibkr_marketdata_v1_market_data_proto_rawDesc), len(file_api_ibkr_marketdata_v1_market_data_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_api_ibkr_market_data_v1_market_data_proto_goTypes,
-		DependencyIndexes: file_api_ibkr_market_data_v1_market_data_proto_depIdxs,
-		MessageInfos:      file_api_ibkr_market_data_v1_market_data_proto_msgTypes,
+		GoTypes:           file_api_ibkr_marketdata_v1_market_data_proto_goTypes,
+		DependencyIndexes: file_api_ibkr_marketdata_v1_market_data_proto_depIdxs,
+		MessageInfos:      file_api_ibkr_marketdata_v1_market_data_proto_msgTypes,
 	}.Build()
-	File_api_ibkr_market_data_v1_market_data_proto = out.File
-	file_api_ibkr_market_data_v1_market_data_proto_goTypes = nil
-	file_api_ibkr_market_data_v1_market_data_proto_depIdxs = nil
+	File_api_ibkr_marketdata_v1_market_data_proto = out.File
+	file_api_ibkr_marketdata_v1_market_data_proto_goTypes = nil
+	file_api_ibkr_marketdata_v1_market_data_proto_depIdxs = nil
 }
