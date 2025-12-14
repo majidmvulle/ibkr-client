@@ -1,0 +1,112 @@
+# Default values for ibkr-client.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/majidmvulle/ibkr-client
+  pullPolicy: IfNotPresent
+  tag: "" # Overrides the image tag whose default is the chart appVersion.
+
+migrations:
+  image:
+    repository: ghcr.io/majidmvulle/ibkr-client-migrations
+    pullPolicy: IfNotPresent
+    tag: ""
+
+ibkrGateway:
+  image:
+    repository: ghcr.io/majidmvulle/ibkr-gateway
+    pullPolicy: IfNotPresent
+    tag: ""
+  port: 5000
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  http:
+    port: 8080
+    targetPort: 8080
+  grpc:
+    port: 50051
+    targetPort: 50051
+  # For k3s homelab, use ClusterIP and access via:
+  # - kubectl port-forward
+  # - Existing ingress controller
+  # - Service mesh
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+ibkrGatewayResources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  appName: "ibkr-client"
+  appEnv: "production"
+  appDebug: false
+  appVersion: "0.1.0"
+  httpPort: 8080
+  grpcPort: 50051
+  logLevel: 0
+  dbLogLevel: 2
+  ibkrGatewayURL: "http://localhost:5000"
+  mtlsEnabled: false
+  otelCollectorEndpoint: ""
+
+# Secret references - these reference keys in the Kubernetes Secret
+# Create the secret separately with actual values
+secrets:
+  # Name of the secret containing all sensitive data
+  secretName: ibkr-client-secrets
+  # Keys within the secret
+  keys:
+    dbWriteDSN: db-write-dsn
+    dbReadDSN: db-read-dsn
+    encryptionKey: encryption-key
+    ibkrAccountID: ibkr-account-id

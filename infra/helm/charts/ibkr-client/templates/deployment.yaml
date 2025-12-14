@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ibkr-client.fullname" . }}
+  labels:
+    {{- include "ibkr-client.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ibkr-client.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ .Values | toYaml | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "ibkr-client.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ibkr-client.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # Database migration init container
+        - name: migrations
+          image: {{ include "ibkr-client.migrationsImage" . }}
+          imagePullPolicy: {{ .Values.migrations.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Running database migrations..."
+              goose -dir /migrations postgres "$DB_WRITE_DSN" up
+              echo "Migrations completed successfully"
+          env:
+            - name: DB_WRITE_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.dbWriteDSN }}
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      containers:
+        # Main application container
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "ibkr-client.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.httpPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.config.grpcPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: APP_NAME
+              value: {{ .Values.config.appName | quote }}
+            - name: APP_ENV
+              value: {{ .Values.config.appEnv | quote }}
+            - name: APP_DEBUG
+              value: {{ .Values.config.appDebug | quote }}
+            - name: APP_VERSION
+              value: {{ .Values.config.appVersion | quote }}
+            - name: APP_HTTP_PORT
+              value: {{ .Values.config.httpPort | quote }}
+            - name: APP_GRPC_PORT
+              value: {{ .Values.config.grpcPort | quote }}
+            - name: APP_LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: DB_LOG_LEVEL
+              value: {{ .Values.config.dbLogLevel | quote }}
+            - name: IBKR_GATEWAY_URL
+              value: {{ .Values.config.ibkrGatewayURL | quote }}
+            - name: MTLS_ENABLED
+              value: {{ .Values.config.mtlsEnabled | quote }}
+            - name: OTEL_COLLECTOR_ENDPOINT
+              value: {{ .Values.config.otelCollectorEndpoint | quote }}
+            # Secrets from external Kubernetes Secret
+            - name: DB_WRITE_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.dbWriteDSN }}
+            - name: DB_READ_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.dbReadDSN }}
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.encryptionKey }}
+            - name: IBKR_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.ibkrAccountID }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        # IBKR Gateway sidecar container
+        - name: ibkr-gateway
+          image: {{ include "ibkr-client.ibkrGatewayImage" . }}
+          imagePullPolicy: {{ .Values.ibkrGateway.image.pullPolicy }}
+          ports:
+            - name: gateway
+              containerPort: {{ .Values.ibkrGateway.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/api/tickle
+              port: gateway
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/api/tickle
+              port: gateway
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.ibkrGatewayResources | nindent 12 }}
+          env:
+            - name: GATEWAY_PORT
+              value: "{{ .Values.ibkrGateway.port }}"
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

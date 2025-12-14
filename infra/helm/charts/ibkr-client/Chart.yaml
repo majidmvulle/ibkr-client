@@ -1,0 +1,13 @@
+apiVersion: v2
+name: ibkr-client
+description: IBKR Client Portal Gateway middleware service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - ibkr
+  - trading
+  - middleware
+maintainers:
+  - name: Majid Mvulle
+home: https://github.com/majidmvulle/ibkr-client

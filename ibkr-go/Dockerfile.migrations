@@ -1,0 +1,22 @@
+# Dockerfile for database migrations
+FROM golang:1.25-alpine AS builder
+
+# Install goose
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+
+FROM alpine:latest
+
+# Install ca-certificates for HTTPS connections
+RUN apk --no-cache add ca-certificates
+
+# Copy goose binary from builder
+COPY --from=builder /go/bin/goose /usr/local/bin/goose
+
+# Copy migration files
+COPY migrations /migrations
+
+# Set working directory
+WORKDIR /migrations
+
+# Default command (can be overridden)
+CMD ["goose", "--help"]
