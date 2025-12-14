@@ -43,7 +43,9 @@ func NewService(db *database.DB, encryptionKey []byte, sessionTTL time.Duration)
 // Create creates a new session for the given account ID.
 func (s *Service) Create(ctx context.Context, accountID string) (string, error) {
 	// Generate random session token.
-	tokenBytes := make([]byte, SessionTokenLength)
+	tokenBytes := make([]byte, 0, SessionTokenLength)
+	tokenBytes = tokenBytes[:SessionTokenLength]
+
 	if _, err := rand.Read(tokenBytes); err != nil {
 		return "", fmt.Errorf("failed to generate session token: %w", err)
 	}
@@ -78,7 +80,7 @@ func (s *Service) Create(ctx context.Context, accountID string) (string, error) 
 		return "", fmt.Errorf("failed to create session: %w", err)
 	}
 
-	_ = session // Session ID is in the database, but we return the token to the client
+	_ = session // Session ID is in the database, but we return the token to the client.
 
 	return token, nil
 }

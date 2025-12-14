@@ -8,6 +8,11 @@ import (
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/session"
 )
 
+const (
+	// BearerTokenParts is the expected number of parts in a bearer token header.
+	BearerTokenParts = 2
+)
+
 // SessionContextKey is the context key for storing the account ID from the session.
 type SessionContextKey struct{}
 
@@ -41,9 +46,9 @@ func extractToken(authHeader string) string {
 		return ""
 	}
 
-	// Expected format: "Bearer <token>"
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+	// Expected format: "Bearer <token>".
+	parts := strings.SplitN(authHeader, " ", BearerTokenParts)
+	if len(parts) != BearerTokenParts || strings.ToLower(parts[0]) != "bearer" {
 		return ""
 	}
 
@@ -53,5 +58,6 @@ func extractToken(authHeader string) string {
 // GetAccountIDFromContext retrieves the account ID from the context.
 func GetAccountIDFromContext(ctx context.Context) (string, bool) {
 	accountID, ok := ctx.Value(SessionContextKey{}).(string)
+
 	return accountID, ok
 }
