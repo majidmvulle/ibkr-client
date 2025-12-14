@@ -13,9 +13,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-matrix.outputs.modules }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      
+      - name: Discover Go modules
+        id: set-matrix
+        run: |
+          modules=$(find . -maxdepth 1 -name "*-go" -type d | jq -R -s -c 'split("\n")[:-1]')
+          echo "modules=$modules" >> $GITHUB_OUTPUT
+
   test-coverage-golang:
+    needs: discover-modules
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.discover-modules.outputs.modules) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
@@ -27,15 +45,19 @@ jobs:
           check-latest: true
 
       - name: Install dependencies
+        working-directory: ${{ matrix.module }}
         run: go get ./...
 
       - name: Run Go mod tidy
+        working-directory: ${{ matrix.module }}
         run: go mod tidy
 
       - name: Run Go tests with coverage
+        working-directory: ${{ matrix.module }}
         run: |
           mkdir -p ./.coverage
           go test -v -race ./... -coverprofile=./.coverage/coverage.out -coverpkg=./... -covermode=atomic
 
       - name: Generate Test Coverage
+        working-directory: ${{ matrix.module }}
         run: go tool cover -func=./.coverage/coverage.out
