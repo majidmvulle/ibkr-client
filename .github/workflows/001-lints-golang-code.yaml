@@ -56,5 +56,4 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           working-directory: ${{ matrix.module }}
-          args: --out-format=github-actions
           version: v2.6
