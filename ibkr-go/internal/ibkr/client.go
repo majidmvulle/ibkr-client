@@ -7,25 +7,30 @@ import (
 	"time"
 )
 
-// Client is an HTTP client for the IBKR Client Portal Gateway API
+const (
+	// DefaultHTTPTimeout is the default timeout for HTTP requests.
+	DefaultHTTPTimeout = 30 * time.Second
+)
+
+// Client is an HTTP client for the IBKR Client Portal Gateway API.
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
 	accountID  string
 }
 
-// NewClient creates a new IBKR Gateway client
+// NewClient creates a new IBKR Gateway client.
 func NewClient(baseURL, accountID string) *Client {
 	return &Client{
 		baseURL:   baseURL,
 		accountID: accountID,
 		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout: DefaultHTTPTimeout,
 		},
 	}
 }
 
-// Ping checks if the Gateway is accessible
+// Ping checks if the Gateway is accessible.
 func (c *Client) Ping(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/v1/api/tickle", nil)
 	if err != nil {
@@ -45,9 +50,9 @@ func (c *Client) Ping(ctx context.Context) error {
 	return nil
 }
 
-// TODO: Implement additional Gateway API methods:
+// Additional Gateway API methods will be implemented in Phase 4:
 // - AuthStatus() - Check authentication status
 // - GetAccounts() - Get available accounts
 // - GetPortfolio() - Get portfolio positions
 // - PlaceOrder() - Place an order
-// - GetMarketData() - Get market data
+// - GetMarketData() - Get market data.

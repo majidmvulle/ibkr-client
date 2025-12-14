@@ -8,7 +8,7 @@ import (
 	"connectrpc.com/connect"
 )
 
-// LoggingInterceptor logs all incoming requests
+// LoggingInterceptor logs all incoming requests.
 func LoggingInterceptor(logger *slog.Logger) connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
