@@ -19,7 +19,7 @@ import (
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/middleware"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/session"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/telemetry"
-	marketdatav1connect "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/market_data/v1/marketdatav1connect"
+	marketdatav1connect "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/marketdata/v1/marketdatav1connect"
 	"github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/order/v1/orderv1connect"
 	"github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/portfolio/v1/portfoliov1connect"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -30,6 +30,7 @@ import (
 const (
 	shutdownTimeout     = 10 * time.Second
 	otelShutdownTimeout = 5 * time.Second
+	sessionTTL          = 24 * time.Hour
 )
 
 func main() {
@@ -66,8 +67,8 @@ func main() {
 	// Initialize IBKR client.
 	ibkrClient := ibkr.NewClient(cfg.IBKRGatewayURL, cfg.IBKRAccountID)
 
-	// Initialize session service.
-	sessionService := session.NewService(db, cfg.EncryptionKey, cfg.SessionTTL)
+	// Initialize session service (24 hour TTL).
+	sessionService := session.NewService(db, cfg.EncryptionKey, sessionTTL)
 
 	logger.Info("Services initialized successfully")
 
