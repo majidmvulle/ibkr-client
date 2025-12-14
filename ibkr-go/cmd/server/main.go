@@ -12,9 +12,16 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/api"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/config"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/database"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/ibkr"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/middleware"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/session"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/telemetry"
+	marketdatav1connect "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/market_data/v1/marketdatav1connect"
+	"github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/order/v1/orderv1connect"
+	"github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/portfolio/v1/portfoliov1connect"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -46,8 +53,26 @@ func main() {
 	tp := initTelemetry(ctx, cfg, logger)
 	defer shutdownTelemetry(tp, logger)
 
+	// Initialize database.
+	db, err := database.New(ctx, cfg.DBWriteDSN, cfg.DBReadDSN)
+	if err != nil {
+		logger.Error("Failed to initialize database", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	logger.Info("Database initialized successfully")
+
+	// Initialize IBKR client.
+	ibkrClient := ibkr.NewClient(cfg.IBKRGatewayURL, cfg.IBKRAccountID)
+
+	// Initialize session service.
+	sessionService := session.NewService(db, cfg.EncryptionKey, cfg.SessionTTL)
+
+	logger.Info("Services initialized successfully")
+
 	// Create and start HTTP server.
-	server := setupServer(cfg)
+	server := setupServer(cfg, db, ibkrClient, sessionService)
 	startServer(server, logger)
 
 	// Wait for shutdown signal.
@@ -94,22 +119,38 @@ func shutdownTelemetry(tp *sdktrace.TracerProvider, logger *slog.Logger) {
 	}
 }
 
-func setupServer(cfg *config.Config) *http.Server {
+func setupServer(
+	cfg *config.Config,
+	db *database.DB,
+	ibkrClient *ibkr.Client,
+	sessionService *session.Service,
+) *http.Server {
 	logger := slog.Default()
 	mux := http.NewServeMux()
 
 	// Create ConnectRPC interceptors.
 	interceptors := connect.WithInterceptors(
-		middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
-		middleware.LoggingInterceptor(logger), // Log requests.
+		middleware.NewValidationInterceptor(),            // Validate requests with protovalidate.
+		middleware.NewSessionInterceptor(sessionService), // Validate sessions.
+		middleware.LoggingInterceptor(logger),            // Log requests.
 	)
 
-	// Service handlers will be registered here in Phase 4.
-	// Example:
-	// mux.Handle(orderv1connect.NewOrderServiceHandler(orderHandler, interceptors)).
-	// mux.Handle(portfoliov1connect.NewPortfolioServiceHandler(portfolioHandler, interceptors)).
-	// mux.Handle(marketdatav1connect.NewMarketDataServiceHandler(marketDataHandler, interceptors)).
-	_ = interceptors // Will be used when service handlers are implemented..
+	// Create service handlers.
+	orderHandler := api.NewOrderServiceHandler(ibkrClient)
+	portfolioHandler := api.NewPortfolioServiceHandler(ibkrClient)
+	marketDataHandler := api.NewMarketDataServiceHandler(ibkrClient)
+
+	// Register service handlers.
+	path, handler := orderv1connect.NewOrderServiceHandler(orderHandler, interceptors)
+	mux.Handle(path, handler)
+
+	path, handler = portfoliov1connect.NewPortfolioServiceHandler(portfolioHandler, interceptors)
+	mux.Handle(path, handler)
+
+	path, handler = marketdatav1connect.NewMarketDataServiceHandler(marketDataHandler, interceptors)
+	mux.Handle(path, handler)
+
+	logger.Info("Service handlers registered")
 
 	// Health check endpoint.
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +160,15 @@ func setupServer(cfg *config.Config) *http.Server {
 
 	// Readiness check endpoint.
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		// Check database health.
+		if err := db.Health(r.Context()); err != nil {
+			logger.Error("Database health check failed", slog.String("error", err.Error()))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Fprint(w, "Database unhealthy")
+
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "Ready")
 	})

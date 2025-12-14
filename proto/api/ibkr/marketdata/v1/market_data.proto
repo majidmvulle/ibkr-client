@@ -1,19 +1,19 @@
 syntax = "proto3";
 
-package api.ibkr.market_data.v1;
+package api.ibkr.marketdata.v1;
 
 import "buf/validate/validate.proto";
 
-option go_package = "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/marketdata/v1;market_datav1";
+option go_package = "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/marketdata/v1;marketdatav1";
 
 // MarketDataService handles market data requests.
 service MarketDataService {
   // GetQuote retrieves a real-time quote for a symbol.
   rpc GetQuote(GetQuoteRequest) returns (GetQuoteResponse);
-  
+
   // GetHistoricalData retrieves historical market data.
   rpc GetHistoricalData(GetHistoricalDataRequest) returns (GetHistoricalDataResponse);
-  
+
   // StreamQuotes streams real-time quotes for a symbol.
   rpc StreamQuotes(StreamQuotesRequest) returns (stream StreamQuotesResponse);
 }
