@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package api.ibkr.portfolio.v1;
+
+import "api/common/money/v1/money.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/portfolio/v1;portfoliov1";
+
+// PortfolioService handles portfolio and position queries.
+service PortfolioService {
+  // GetPortfolio retrieves portfolio summary for an account.
+  rpc GetPortfolio(GetPortfolioRequest) returns (GetPortfolioResponse);
+  
+  // GetPositions retrieves all positions for an account.
+  rpc GetPositions(GetPositionsRequest) returns (GetPositionsResponse);
+  
+  // GetAccountSummary retrieves account summary information.
+  rpc GetAccountSummary(GetAccountSummaryRequest) returns (GetAccountSummaryResponse);
+}
+
+// GetPortfolioRequest contains parameters for retrieving portfolio.
+message GetPortfolioRequest {
+  string account_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// GetPortfolioResponse contains portfolio summary.
+message GetPortfolioResponse {
+  Portfolio portfolio = 1;
+}
+
+// Portfolio represents a portfolio summary.
+message Portfolio {
+  string account_id = 1;
+  api.common.money.v1.Money total_value = 2;
+  api.common.money.v1.Money cash_balance = 3;
+  repeated Position positions = 4;
+}
+
+// GetPositionsRequest contains parameters for retrieving positions.
+message GetPositionsRequest {
+  string account_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// GetPositionsResponse contains a list of positions.
+message GetPositionsResponse {
+  repeated Position positions = 1;
+}
+
+// Position represents a position in a security.
+message Position {
+  string symbol = 1;
+  double quantity = 2;
+  api.common.money.v1.Money market_value = 3;
+  api.common.money.v1.Money average_cost = 4;
+  double unrealized_pnl_percent = 5;
+  api.common.money.v1.Money unrealized_pnl = 6;
+  optional string last_updated = 7;
+}
+
+// GetAccountSummaryRequest contains parameters for retrieving account summary.
+message GetAccountSummaryRequest {
+  string account_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// GetAccountSummaryResponse contains account summary information.
+message GetAccountSummaryResponse {
+  AccountSummary account_summary = 1;
+}
+
+// AccountSummary represents account summary information.
+message AccountSummary {
+  string account_id = 1;
+  api.common.money.v1.Money net_liquidation = 2;
+  api.common.money.v1.Money total_cash = 3;
+  api.common.money.v1.Money buying_power = 4;
+  api.common.money.v1.Money equity_with_loan = 5;
+  double maintenance_margin_req = 6;
+  string currency = 7;
+}

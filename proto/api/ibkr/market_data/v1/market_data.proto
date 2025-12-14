@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package api.ibkr.market_data.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/majidmvulle/ibkr-client/proto/gen/go/api/ibkr/marketdata/v1;market_datav1";
+
+// MarketDataService handles market data requests.
+service MarketDataService {
+  // GetQuote retrieves a real-time quote for a symbol.
+  rpc GetQuote(GetQuoteRequest) returns (GetQuoteResponse);
+  
+  // GetHistoricalData retrieves historical market data.
+  rpc GetHistoricalData(GetHistoricalDataRequest) returns (GetHistoricalDataResponse);
+  
+  // StreamQuotes streams real-time quotes for a symbol.
+  rpc StreamQuotes(StreamQuotesRequest) returns (stream StreamQuotesResponse);
+}
+
+// GetQuoteRequest contains parameters for retrieving a quote.
+message GetQuoteRequest {
+  string symbol = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 20
+    pattern: "^[A-Z0-9]+$"
+  }];
+}
+
+// GetQuoteResponse contains a market quote.
+message GetQuoteResponse {
+  Quote quote = 1;
+}
+
+// Quote represents a market quote.
+message Quote {
+  string symbol = 1;
+  double bid = 2;
+  double ask = 3;
+  double last = 4;
+  int64 volume = 5;
+  double high = 6;
+  double low = 7;
+  double open = 8;
+  double close = 9;
+  string timestamp = 10;
+}
+
+// GetHistoricalDataRequest contains parameters for historical data.
+message GetHistoricalDataRequest {
+  string symbol = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 20
+    pattern: "^[A-Z0-9]+$"
+  }];
+  string period = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 10
+  }]; // e.g., "1d", "1w", "1m"
+  string bar_size = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 10
+  }]; // e.g., "1min", "5min", "1hour", "1day"
+  optional int32 limit = 4 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 10000
+  }];
+}
+
+// GetHistoricalDataResponse contains historical data bars.
+message GetHistoricalDataResponse {
+  repeated Bar bars = 1;
+}
+
+// Bar represents a historical price bar.
+message Bar {
+  string timestamp = 1;
+  double open = 2;
+  double high = 3;
+  double low = 4;
+  double close = 5;
+  int64 volume = 6;
+}
+
+// StreamQuotesRequest contains parameters for streaming quotes.
+message StreamQuotesRequest {
+  string symbol = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 20
+    pattern: "^[A-Z0-9]+$"
+  }];
+}
+
+// StreamQuotesResponse contains a streaming quote.
+message StreamQuotesResponse {
+  Quote quote = 1;
+}

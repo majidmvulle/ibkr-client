@@ -11,7 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/config"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/middleware"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/telemetry"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/net/http2"
@@ -93,7 +95,21 @@ func shutdownTelemetry(tp *sdktrace.TracerProvider, logger *slog.Logger) {
 }
 
 func setupServer(cfg *config.Config) *http.Server {
+	logger := slog.Default()
 	mux := http.NewServeMux()
+
+	// Create ConnectRPC interceptors.
+	interceptors := connect.WithInterceptors(
+		middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
+		middleware.LoggingInterceptor(logger), // Log requests.
+	)
+
+	// Service handlers will be registered here in Phase 4.
+	// Example:
+	// mux.Handle(orderv1connect.NewOrderServiceHandler(orderHandler, interceptors)).
+	// mux.Handle(portfoliov1connect.NewPortfolioServiceHandler(portfolioHandler, interceptors)).
+	// mux.Handle(marketdatav1connect.NewMarketDataServiceHandler(marketDataHandler, interceptors)).
+	_ = interceptors // Will be used when service handlers are implemented..
 
 	// Health check endpoint.
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
