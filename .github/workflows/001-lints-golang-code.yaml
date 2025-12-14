@@ -56,4 +56,4 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           working-directory: ${{ matrix.module }}
-          version: latest
+          version: v2.6
