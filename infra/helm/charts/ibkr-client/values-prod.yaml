@@ -1,0 +1,61 @@
+# Production environment values
+replicaCount: 3
+
+image:
+  repository: ghcr.io/majidmvulle/ibkr-client
+  tag: ""  # Set via CI/CD
+  pullPolicy: IfNotPresent
+
+migrations:
+  image:
+    repository: ghcr.io/majidmvulle/ibkr-client-migrations
+    tag: ""  # Set via CI/CD
+
+ibkrGateway:
+  image:
+    repository: ghcr.io/majidmvulle/ibkr-gateway
+    tag: "stable"
+
+config:
+  appEnv: "production"
+  appDebug: false
+  logLevel: 0  # Info level
+  dbLogLevel: 2  # Warn level
+  mtlsEnabled: true
+  otelCollectorEndpoint: "http://otel-collector:4317"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+ibkrGatewayResources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Production secrets should be managed via external secrets or sealed secrets
+# DO NOT commit actual production secrets to git
+secrets:
+  dbWriteDSN: ""  # Set via external secrets
+  dbReadDSN: ""  # Set via external secrets
+  encryptionKey: ""  # Set via external secrets
+  ibkrAccountID: ""  # Set via external secrets
+
+externalSecrets:
+  enabled: true
+  backend: vault
+  vaultPath: secret/data/ibkr-client/production

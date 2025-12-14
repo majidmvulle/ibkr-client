@@ -1,0 +1,216 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ibkr-client.fullname" . }}
+  labels:
+    {{- include "ibkr-client.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ibkr-client.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "ibkr-client.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ibkr-client.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # Database migration init container
+        - name: migrations
+          image: {{ include "ibkr-client.migrationsImage" . }}
+          imagePullPolicy: {{ .Values.migrations.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Running database migrations..."
+              goose -dir /migrations postgres "$DB_WRITE_DSN" up
+              echo "Migrations completed successfully"
+          env:
+            - name: DB_WRITE_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: db-write-dsn
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      containers:
+        # Main application container
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "ibkr-client.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.httpPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.config.grpcPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: app-name
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: app-env
+            - name: APP_DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: app-debug
+            - name: APP_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: app-version
+            - name: APP_HTTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: http-port
+            - name: APP_GRPC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: grpc-port
+            - name: APP_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: log-level
+            - name: DB_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: db-log-level
+            - name: IBKR_GATEWAY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: ibkr-gateway-url
+            - name: MTLS_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: mtls-enabled
+            - name: OTEL_COLLECTOR_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: otel-collector-endpoint
+            # Secrets
+            - name: DB_WRITE_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: db-write-dsn
+            - name: DB_READ_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: db-read-dsn
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: encryption-key
+            - name: IBKR_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibkr-client.fullname" . }}
+                  key: ibkr-account-id
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        # IBKR Gateway sidecar container
+        - name: ibkr-gateway
+          image: {{ include "ibkr-client.ibkrGatewayImage" . }}
+          imagePullPolicy: {{ .Values.ibkrGateway.image.pullPolicy }}
+          ports:
+            - name: gateway
+              containerPort: {{ .Values.ibkrGateway.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/api/tickle
+              port: gateway
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/api/tickle
+              port: gateway
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.ibkrGatewayResources | nindent 12 }}
+          env:
+            - name: GATEWAY_PORT
+              value: "{{ .Values.ibkrGateway.port }}"
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,49 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: ghcr.io/majidmvulle/ibkr-client
+  tag: "latest"
+  pullPolicy: Always
+
+migrations:
+  image:
+    repository: ghcr.io/majidmvulle/ibkr-client-migrations
+    tag: "latest"
+
+ibkrGateway:
+  image:
+    repository: ghcr.io/majidmvulle/ibkr-gateway
+    tag: "latest"
+
+config:
+  appEnv: "development"
+  appDebug: true
+  logLevel: -4  # Debug level
+  dbLogLevel: 4  # Verbose
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+ibkrGatewayResources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+# Development secrets (override these with actual values)
+secrets:
+  dbWriteDSN: "postgres://ibkr:password@postgres:5432/ibkr?sslmode=disable"
+  dbReadDSN: "postgres://ibkr:password@postgres:5432/ibkr?sslmode=disable"
+  encryptionKey: "12345678901234567890123456789012"  # 32 bytes for dev
+  ibkrAccountID: "DU123456"
