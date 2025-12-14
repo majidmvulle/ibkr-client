@@ -13,9 +13,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-matrix.outputs.modules }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+      
+      - name: Discover Go modules
+        id: set-matrix
+        run: |
+          modules=$(find . -maxdepth 1 -name "*-go" -type d | jq -R -s -c 'split("\n")[:-1]')
+          echo "modules=$modules" >> $GITHUB_OUTPUT
+
   lint-golang:
+    needs: discover-modules
     timeout-minutes: 3
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.discover-modules.outputs.modules) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -27,13 +45,16 @@ jobs:
           check-latest: true
 
       - name: Install dependencies
+        working-directory: ${{ matrix.module }}
         run: go get ./...
 
       - name: Run Go mod tidy
+        working-directory: ${{ matrix.module }}
         run: go mod tidy
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
+          working-directory: ${{ matrix.module }}
           args: --out-format=github-actions
           version: v2.6

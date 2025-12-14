@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ibkr
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # IBKR Client Portal Gateway (custom build)
+  ibkr-gateway:
+    build:
+      context: ./ibkr-gateway
+      dockerfile: Dockerfile
+    environment:
+      TWS_USERID: ${IBKR_USERNAME}
+      TWS_PASSWORD: ${IBKR_PASSWORD}
+      TRADING_MODE: paper  # or 'live'
+      READ_ONLY_API: "no"
+    ports:
+      - "5000:5000"  # Client Portal API
+    volumes:
+      - ibkr_settings:/root/Jts
+    restart: unless-stopped
+
+  ibkr-server:
+    build:
+      context: .
+      dockerfile: ibkr-go/Dockerfile
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    environment:
+      IBKR_GATEWAY_URL: http://ibkr-gateway:5000
+      DB_WRITE_DSN: postgres://postgres:password@postgres:5432/ibkr?sslmode=disable
+      DB_READ_DSN: postgres://postgres:password@postgres:5432/ibkr?sslmode=disable
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_COLLECTOR_ENDPOINT:-http://host.docker.internal:4317}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ibkr-gateway:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  ibkr_settings:
