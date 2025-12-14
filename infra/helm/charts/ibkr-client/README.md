@@ -1,6 +1,6 @@
 # IBKR Client Helm Chart
 
-This Helm chart deploys the IBKR Client Portal Gateway middleware service to Kubernetes.
+This Helm chart deploys the IBKR Client Portal Gateway middleware service to Kubernetes (k3s).
 
 ## Architecture
 
@@ -12,87 +12,108 @@ The deployment consists of three containers:
 
 ## Prerequisites
 
-- Kubernetes 1.19+
+- Kubernetes 1.19+ (k3s)
 - Helm 3.0+
 - PostgreSQL database (external or in-cluster)
 - IBKR account credentials
+- Kubernetes Secret with sensitive data
 
 ## Installation
 
-### Development
+### 1. Create Kubernetes Secret
 
-```bash
-# Install with development values
-helm install ibkr-client ./infra/helm/ibkr-client \
-  --namespace ibkr \
-  --create-namespace \
-  --values ./infra/helm/ibkr-client/values-dev.yaml
-```
-
-### Production
-
-```bash
-# Install with production values
-helm install ibkr-client ./infra/helm/ibkr-client \
-  --namespace ibkr \
-  --create-namespace \
-  --values ./infra/helm/ibkr-client/values-prod.yaml \
-  --set image.tag=v0.1.0
-```
-
-## Configuration
-
-### Required Secrets
-
-The following secrets must be configured:
-
-- `dbWriteDSN`: PostgreSQL write connection string
-- `dbReadDSN`: PostgreSQL read connection string
-- `encryptionKey`: 32-byte encryption key for session tokens
-- `ibkrAccountID`: IBKR account ID
-
-### Example Secret Creation
+First, create a secret with all sensitive data:
 
 ```bash
 # Generate a secure 32-byte encryption key
 ENCRYPTION_KEY=$(openssl rand -base64 32 | head -c 32)
 
 # Create secret
-kubectl create secret generic ibkr-client \
+kubectl create secret generic ibkr-client-secrets \
   --namespace ibkr \
-  --from-literal=db-write-dsn='postgres://user:pass@host:5432/dbname' \
-  --from-literal=db-read-dsn='postgres://user:pass@host:5432/dbname' \
+  --from-literal=db-write-dsn='postgres://user:pass@host:5432/dbname?sslmode=disable' \
+  --from-literal=db-read-dsn='postgres://user:pass@host:5432/dbname?sslmode=disable' \
   --from-literal=encryption-key="$ENCRYPTION_KEY" \
   --from-literal=ibkr-account-id='DU123456'
 ```
 
-## Values
+### 2. Install Helm Chart
+
+```bash
+# Install with default values
+helm install ibkr-client ./infra/helm/charts/ibkr-client \
+  --namespace ibkr \
+  --create-namespace \
+  --set image.tag=v0.1.0 \
+  --set migrations.image.tag=v0.1.0 \
+  --set ibkrGateway.image.tag=stable
+
+# Or with custom values file
+helm install ibkr-client ./infra/helm/charts/ibkr-client \
+  --namespace ibkr \
+  --create-namespace \
+  --values my-values.yaml
+```
+
+## Configuration
+
+### Key Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `replicaCount` | int | `1` | Number of replicas |
+| `replicaCount` | int | `1` | Number of replicas (set as needed) |
 | `image.repository` | string | `ghcr.io/majidmvulle/ibkr-client` | Image repository |
 | `image.tag` | string | `""` | Image tag (defaults to chart appVersion) |
 | `migrations.image.repository` | string | `ghcr.io/majidmvulle/ibkr-client-migrations` | Migrations image |
+| `migrations.image.tag` | string | `""` | Migrations image tag |
 | `ibkrGateway.image.repository` | string | `ghcr.io/majidmvulle/ibkr-gateway` | IBKR Gateway image |
+| `ibkrGateway.image.tag` | string | `""` | IBKR Gateway image tag |
 | `ibkrGateway.port` | int | `5000` | IBKR Gateway port |
 | `config.appEnv` | string | `production` | Application environment |
 | `config.appDebug` | bool | `false` | Enable debug mode |
 | `config.httpPort` | int | `8080` | HTTP port |
 | `config.grpcPort` | int | `50051` | gRPC port |
-| `autoscaling.enabled` | bool | `false` | Enable HPA |
-| `autoscaling.minReplicas` | int | `1` | Minimum replicas |
-| `autoscaling.maxReplicas` | int | `10` | Maximum replicas |
-| `ingress.enabled` | bool | `false` | Enable ingress |
+| `secrets.secretName` | string | `ibkr-client-secrets` | Name of Kubernetes Secret |
+
+### Example Custom Values
+
+```yaml
+# my-values.yaml
+replicaCount: 2
+
+image:
+  tag: "v0.2.0"
+
+migrations:
+  image:
+    tag: "v0.2.0"
+
+ibkrGateway:
+  image:
+    tag: "stable"
+
+config:
+  appEnv: "staging"
+  appDebug: true
+  logLevel: -4  # Debug
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+```
 
 ## Upgrading
 
 ```bash
 # Upgrade with new image tag
-helm upgrade ibkr-client ./infra/helm/ibkr-client \
+helm upgrade ibkr-client ./infra/helm/charts/ibkr-client \
   --namespace ibkr \
-  --values ./infra/helm/ibkr-client/values-prod.yaml \
-  --set image.tag=v0.2.0
+  --set image.tag=v0.2.0 \
+  --set migrations.image.tag=v0.2.0
 ```
 
 ## Uninstalling
@@ -100,6 +121,25 @@ helm upgrade ibkr-client ./infra/helm/ibkr-client \
 ```bash
 helm uninstall ibkr-client --namespace ibkr
 ```
+
+## Accessing the Service
+
+Since the service uses ClusterIP, you can access it via:
+
+### Port Forward
+```bash
+# HTTP
+kubectl port-forward -n ibkr svc/ibkr-client 8080:8080
+
+# gRPC
+kubectl port-forward -n ibkr svc/ibkr-client 50051:50051
+```
+
+### Via Ingress Controller
+Configure your existing ingress controller to route to the service.
+
+### Via Service Mesh
+If using a service mesh, configure routing rules.
 
 ## Health Checks
 
@@ -147,7 +187,7 @@ kubectl describe pod -n ibkr -l app.kubernetes.io/name=ibkr-client
 - Read-only root filesystem
 - No privilege escalation
 - Capabilities dropped
-- Secrets stored in Kubernetes secrets (or external secret manager in production)
+- Secrets stored in Kubernetes secrets (create separately)
 
 ## License
 

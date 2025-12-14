@@ -5,17 +5,14 @@ metadata:
   labels:
     {{- include "ibkr-client.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "ibkr-client.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/config: {{ .Values | toYaml | sha256sum }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -47,8 +44,8 @@ spec:
             - name: DB_WRITE_DSN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: db-write-dsn
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.dbWriteDSN }}
           resources:
             limits:
               cpu: 100m
@@ -90,81 +87,48 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: APP_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: app-name
+              value: {{ .Values.config.appName | quote }}
             - name: APP_ENV
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: app-env
+              value: {{ .Values.config.appEnv | quote }}
             - name: APP_DEBUG
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: app-debug
+              value: {{ .Values.config.appDebug | quote }}
             - name: APP_VERSION
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: app-version
+              value: {{ .Values.config.appVersion | quote }}
             - name: APP_HTTP_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: http-port
+              value: {{ .Values.config.httpPort | quote }}
             - name: APP_GRPC_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: grpc-port
+              value: {{ .Values.config.grpcPort | quote }}
             - name: APP_LOG_LEVEL
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: log-level
+              value: {{ .Values.config.logLevel | quote }}
             - name: DB_LOG_LEVEL
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: db-log-level
+              value: {{ .Values.config.dbLogLevel | quote }}
             - name: IBKR_GATEWAY_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: ibkr-gateway-url
+              value: {{ .Values.config.ibkrGatewayURL | quote }}
             - name: MTLS_ENABLED
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: mtls-enabled
+              value: {{ .Values.config.mtlsEnabled | quote }}
             - name: OTEL_COLLECTOR_ENDPOINT
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: otel-collector-endpoint
-            # Secrets
+              value: {{ .Values.config.otelCollectorEndpoint | quote }}
+            # Secrets from external Kubernetes Secret
             - name: DB_WRITE_DSN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: db-write-dsn
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.dbWriteDSN }}
             - name: DB_READ_DSN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: db-read-dsn
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.dbReadDSN }}
             - name: ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: encryption-key
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.encryptionKey }}
             - name: IBKR_ACCOUNT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ibkr-client.fullname" . }}
-                  key: ibkr-account-id
+                  name: {{ .Values.secrets.secretName }}
+                  key: {{ .Values.secrets.keys.ibkrAccountID }}
           {{- with .Values.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

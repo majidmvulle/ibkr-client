@@ -13,13 +13,13 @@ migrations:
   image:
     repository: ghcr.io/majidmvulle/ibkr-client-migrations
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: ""
 
 ibkrGateway:
   image:
     repository: ghcr.io/majidmvulle/ibkr-gateway
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: ""
   port: 5000
 
 imagePullSecrets: []
@@ -76,13 +76,6 @@ ibkrGatewayResources:
     cpu: 50m
     memory: 64Mi
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
-
 volumes: []
 volumeMounts: []
 
@@ -106,23 +99,14 @@ config:
   mtlsEnabled: false
   otelCollectorEndpoint: ""
 
-# Secrets (should be overridden in values-{env}.yaml or via external secrets)
+# Secret references - these reference keys in the Kubernetes Secret
+# Create the secret separately with actual values
 secrets:
-  # Database connection strings
-  dbWriteDSN: ""
-  dbReadDSN: ""
-  # 32-byte encryption key for session tokens (base64 encoded)
-  encryptionKey: ""
-  # IBKR account ID
-  ibkrAccountID: ""
-  # mTLS certificates (if enabled)
-  mtlsCACert: ""
-  mtlsServerCert: ""
-  mtlsServerKey: ""
-  ibkrGatewayKey: ""
-
-# External secrets configuration (optional)
-externalSecrets:
-  enabled: false
-  backend: vault
-  vaultPath: secret/data/ibkr-client
+  # Name of the secret containing all sensitive data
+  secretName: ibkr-client-secrets
+  # Keys within the secret
+  keys:
+    dbWriteDSN: db-write-dsn
+    dbReadDSN: db-read-dsn
+    encryptionKey: encryption-key
+    ibkrAccountID: ibkr-account-id
