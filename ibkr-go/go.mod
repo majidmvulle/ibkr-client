@@ -6,6 +6,7 @@ require (
 	buf.build/go/protovalidate v1.1.0
 	connectrpc.com/connect v1.19.1
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/majidmvulle/ibkr-client/proto/gen/go v0.0.0-20251214014930-4d9aba264e28
 	go.opentelemetry.io/otel v1.39.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.39.0
 	go.opentelemetry.io/otel/sdk v1.39.0

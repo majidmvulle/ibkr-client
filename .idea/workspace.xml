@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eeebe822-403d-426c-9d64-752af0fe7ac3" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/ibkr-go/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/ibkr-go/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ibkr-go/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/ibkr-go/go.sum" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "git-widget-placeholder": "feat/implement-core-business-logic"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <servers />
+  </component>
+</project>
