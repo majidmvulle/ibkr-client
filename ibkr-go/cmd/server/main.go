@@ -13,6 +13,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/config"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/database"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/middleware"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/telemetry"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -46,8 +47,18 @@ func main() {
 	tp := initTelemetry(ctx, cfg, logger)
 	defer shutdownTelemetry(tp, logger)
 
+	// Initialize database.
+	db, err := database.New(ctx, cfg.DBWriteDSN, cfg.DBReadDSN)
+	if err != nil {
+		logger.Error("Failed to initialize database", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	logger.Info("Database initialized successfully")
+
 	// Create and start HTTP server.
-	server := setupServer(cfg)
+	server := setupServer(cfg, db)
 	startServer(server, logger)
 
 	// Wait for shutdown signal.
@@ -94,7 +105,7 @@ func shutdownTelemetry(tp *sdktrace.TracerProvider, logger *slog.Logger) {
 	}
 }
 
-func setupServer(cfg *config.Config) *http.Server {
+func setupServer(cfg *config.Config, db *database.DB) *http.Server {
 	logger := slog.Default()
 	mux := http.NewServeMux()
 
@@ -119,6 +130,15 @@ func setupServer(cfg *config.Config) *http.Server {
 
 	// Readiness check endpoint.
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		// Check database health.
+		if err := db.Health(r.Context()); err != nil {
+			logger.Error("Database health check failed", slog.String("error", err.Error()))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Fprint(w, "Database unhealthy")
+
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "Ready")
 	})
