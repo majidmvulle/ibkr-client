@@ -79,6 +79,15 @@ ibkrGatewayResources:
 volumes: []
 volumeMounts: []
 
+# TLS/mTLS configuration
+tls:
+  enabled: true
+  issuerName: ca-issuer
+  organization: homelab
+  # Paths where cert-manager will mount certificates
+  serverCertPath: /etc/tls/server
+  caCertPath: /etc/tls/ca
+
 nodeSelector: {}
 
 tolerations: []

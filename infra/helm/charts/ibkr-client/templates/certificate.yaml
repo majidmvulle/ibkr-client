@@ -1,0 +1,26 @@
+{{- if .Values.tls.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "ibkr-client.fullname" . }}-server-cert
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ibkr-client.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "ibkr-client.fullname" . }}-server-tls
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  subject:
+    organizations:
+      - {{ .Values.tls.organization | default "homelab" }}
+  commonName: {{ include "ibkr-client.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  dnsNames:
+    - {{ include "ibkr-client.fullname" . }}
+    - {{ include "ibkr-client.fullname" . }}.{{ .Release.Namespace }}
+    - {{ include "ibkr-client.fullname" . }}.{{ .Release.Namespace }}.svc
+    - {{ include "ibkr-client.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    name: {{ .Values.tls.issuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
