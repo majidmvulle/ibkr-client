@@ -237,5 +237,5 @@ def search_contracts():
     ])
 
 if __name__ == '__main__':
-    print("Starting Mock IBKR Gateway on port 5000...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("Starting Mock IBKR Gateway on port 5555...")
+    app.run(host='0.0.0.0', port=5555, debug=False)

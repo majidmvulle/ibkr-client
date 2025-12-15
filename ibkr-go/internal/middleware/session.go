@@ -61,3 +61,8 @@ func GetAccountIDFromContext(ctx context.Context) (string, bool) {
 
 	return accountID, ok
 }
+
+// SetAccountIDInContext sets the account ID in the context (for testing).
+func SetAccountIDInContext(ctx context.Context, accountID string) context.Context {
+	return context.WithValue(ctx, SessionContextKey{}, accountID)
+}
