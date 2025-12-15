@@ -1,27 +1,11 @@
+```go
 package main
 
 import (
+	"context"
 	"testing"
-
-	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/config"
 )
 
-func TestServerConfiguration(t *testing.T) {
-	tests := []struct {
-		name string
-		cfg  *config.Config
-	}{
-		{
-			name: "basic config",
-			cfg: &config.Config{
-				AppName:     "test",
-				HTTPPort:    8080,
-				MTLSEnabled: false,
-			},
-		},
-		{
-			name: "with mTLS",
-			cfg: &config.Config{
 				AppName:            "test",
 				HTTPPort:           8080,
 				MTLSEnabled:        true,
