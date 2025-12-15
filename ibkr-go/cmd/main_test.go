@@ -1,32 +1,45 @@
 package cmd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/config"
 )
 
-func TestMain(t *testing.T) {
-	// Test that main doesn't panic with nil config
-	// We can't actually run main() as it would block, but we can test components
-	cfg := &config.Config{
-		AppName:     "test",
-		AppEnv:      "test",
-		HTTPPort:    8080,
-		GRPCPort:    50051,
-		MTLSEnabled: false,
+func TestServerConfiguration(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  *config.Config
+	}{
+		{
+			name: "basic config",
+			cfg: &config.Config{
+				AppName:     "test",
+				HTTPPort:    8080,
+				MTLSEnabled: false,
+			},
+		},
+		{
+			name: "with mTLS",
+			cfg: &config.Config{
+				AppName:            "test",
+				HTTPPort:           8080,
+				MTLSEnabled:        true,
+				MTLSServerCertPath: "/tmp/cert.pem",
+				MTLSServerKeyPath:  "/tmp/key.pem",
+				MTLSCACertPath:     "/tmp/ca.pem",
+			},
+		},
 	}
 
-	if cfg.AppName != "test" {
-		t.Errorf("Config not set correctly")
-	}
-}
-
-func TestInitialization(t *testing.T) {
-	// Test basic initialization doesn't panic
-	ctx := context.Background()
-	if ctx == nil {
-		t.Error("Context is nil")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.cfg.AppName == "" {
+				t.Error("AppName should not be empty")
+			}
+			if tt.cfg.HTTPPort == 0 {
+				t.Error("HTTPPort should not be zero")
+			}
+		})
 	}
 }
