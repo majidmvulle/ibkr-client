@@ -48,14 +48,14 @@ def place_order(account_id):
     """Place order"""
     order_data = request.json
     order_id = f"ORDER{len(MOCK_ORDERS) + 1}"
-    
+
     order = {
         "order_id": order_id,
         "order_status": "Submitted",
         "encrypt_message": "1"
     }
     MOCK_ORDERS.append(order)
-    
+
     return jsonify([{
         "id": order_id,
         "message": ["Order placed successfully"]
@@ -158,7 +158,7 @@ def get_account_summary(account_id):
 def get_market_data():
     """Get market data snapshot"""
     conids = request.args.get('conids', '').split(',')
-    
+
     snapshots = []
     for conid in conids:
         if conid:
@@ -175,7 +175,7 @@ def get_market_data():
                 "7296": "150.00", # Close
                 "_updated": int(time.time() * 1000)
             })
-    
+
     return jsonify(snapshots)
 
 @app.route('/v1/api/iserver/marketdata/history', methods=['GET'])
@@ -213,7 +213,7 @@ def search_contracts():
     """Search for contracts"""
     search_data = request.json
     symbol = search_data.get('symbol', '')
-    
+
     return jsonify([
         {
             "conid": 265598,
