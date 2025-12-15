@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Load test configuration
-	cfg, err := loadTestConfig()
+	cfg, err := config.Load()
 	if err != nil {
 		fmt.Printf("Failed to load test config: %v\n", err)
 		os.Exit(1)
