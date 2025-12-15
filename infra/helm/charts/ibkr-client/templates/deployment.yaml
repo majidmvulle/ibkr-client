@@ -38,7 +38,7 @@ spec:
           args:
             - |
               echo "Running database migrations..."
-              goose -dir /migrations postgres "$DB_WRITE_DSN" up
+              goose -dir /migrations postgres "${DB_WRITE_DSN}" up
               echo "Migrations completed successfully"
           env:
             - name: DB_WRITE_DSN
