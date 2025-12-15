@@ -125,6 +125,33 @@ func TestClient_PlaceOrder_Success(t *testing.T) {
 	}
 }
 
+func TestClient_PlaceOrder_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.PlaceOrder(context.Background(), &PlaceOrderRequest{})
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestClient_PlaceOrder_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`invalid`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.PlaceOrder(context.Background(), &PlaceOrderRequest{})
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
 func TestClient_ModifyOrder_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -148,6 +175,33 @@ func TestClient_ModifyOrder_Success(t *testing.T) {
 	}
 }
 
+func TestClient_ModifyOrder_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.ModifyOrder(context.Background(), "123", &ModifyOrderRequest{})
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestClient_ModifyOrder_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`invalid`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.ModifyOrder(context.Background(), "123", &ModifyOrderRequest{})
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
 func TestClient_CancelOrder_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -161,12 +215,27 @@ func TestClient_CancelOrder_Success(t *testing.T) {
 	}
 }
 
+func TestClient_CancelOrder_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	err := client.CancelOrder(context.Background(), "12345")
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
 func TestClient_GetLiveOrders_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]Order{
-			{OrderID: "12345", Status: "Filled"},
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"orders": []Order{
+				{OrderID: "12345", Status: "Filled"},
+			},
 		})
 	}))
 	defer server.Close()
@@ -178,5 +247,32 @@ func TestClient_GetLiveOrders_Success(t *testing.T) {
 	}
 	if len(orders) != 1 {
 		t.Errorf("Expected 1 order, got %d", len(orders))
+	}
+}
+
+func TestClient_GetLiveOrders_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.GetLiveOrders(context.Background())
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestClient_GetLiveOrders_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`invalid`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.GetLiveOrders(context.Background())
+	if err == nil {
+		t.Error("Expected error")
 	}
 }

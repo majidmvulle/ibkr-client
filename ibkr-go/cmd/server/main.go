@@ -68,7 +68,7 @@ func main() {
 	ibkrClient := ibkr.NewClient(cfg.IBKRGatewayURL, cfg.IBKRAccountID)
 
 	// Initialize session service (24 hour TTL).
-	sessionService := session.NewService(db, cfg.EncryptionKey, sessionTTL)
+	sessionService := session.NewService(db.Queries, cfg.EncryptionKey, sessionTTL)
 
 	logger.Info("Services initialized successfully")
 

@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 	ibkrClient := ibkr.NewClient(cfg.IBKRGatewayURL, cfg.IBKRAccountID)
 
 	// Initialize session service
-	sessionService := session.NewService(db, cfg.EncryptionKey, 24*time.Hour)
+	sessionService := session.NewService(db.Queries, cfg.EncryptionKey, 24*time.Hour)
 
 	// Create test context
 	testCtx = &TestContext{

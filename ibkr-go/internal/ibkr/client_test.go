@@ -55,6 +55,33 @@ func TestClient_AuthStatus(t *testing.T) {
 	}
 }
 
+func TestClient_AuthStatus_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.AuthStatus(context.Background())
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestClient_AuthStatus_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.AuthStatus(context.Background())
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
 func TestClient_Reauthenticate(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -65,6 +92,19 @@ func TestClient_Reauthenticate(t *testing.T) {
 	err := client.Reauthenticate(context.Background())
 	if err != nil {
 		t.Errorf("Reauthenticate() error = %v", err)
+	}
+}
+
+func TestClient_Reauthenticate_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	err := client.Reauthenticate(context.Background())
+	if err == nil {
+		t.Error("Expected error")
 	}
 }
 
@@ -83,5 +123,32 @@ func TestClient_GetAccounts(t *testing.T) {
 	}
 	if len(accounts) != 1 {
 		t.Errorf("Expected 1 account, got %d", len(accounts))
+	}
+}
+
+func TestClient_GetAccounts_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.GetAccounts(context.Background())
+	if err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestClient_GetAccounts_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	_, err := client.GetAccounts(context.Background())
+	if err == nil {
+		t.Error("Expected error")
 	}
 }

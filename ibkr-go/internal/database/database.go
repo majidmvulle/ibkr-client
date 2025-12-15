@@ -57,10 +57,15 @@ func New(ctx context.Context, writeDSN, readDSN string) (*DB, error) {
 
 // Close closes the database connection pool.
 func (d *DB) Close() {
-	d.Pool.Close()
+	if d.Pool != nil {
+		d.Pool.Close()
+	}
 }
 
 // Health checks the database connection health.
 func (d *DB) Health(ctx context.Context) error {
+	if d.Pool == nil {
+		return fmt.Errorf("database pool is not initialized")
+	}
 	return d.Pool.Ping(ctx)
 }
