@@ -1,4 +1,4 @@
-.PHONY: help proto proto-lint build test test-unit test-integration test-coverage go-lint sqlc-generate docker-build docker-push dev-up dev-down dev-logs dev-restart migrate-up migrate-down clean
+.PHONY: help proto proto-lint build test test-unit test-integration test-coverage go-lint sqlc-generate docker-build docker-push helm-package helm-push dev-up dev-down dev-logs dev-restart migrate-up migrate-down clean
 
 help:
 	@echo "Available targets:"
@@ -13,6 +13,8 @@ help:
 	@echo "  sqlc-generate          - Generate type-safe Go code from SQL"
 	@echo "  docker-build           - Build all images (server, migrations, gateway) for multiple platforms"
 	@echo "  docker-push            - Push all images to registry"
+	@echo "  helm-package           - Package Helm chart"
+	@echo "  helm-push              - Package and push Helm chart to OCI registry"
 	@echo "  dev-up                 - Start local dev environment"
 	@echo "  dev-down               - Stop local dev environment"
 	@echo "  dev-logs               - Show logs from dev environment"
@@ -57,7 +59,7 @@ test-coverage-report:
 	cd ibkr-go && go tool cover -func=coverage.out
 
 # Docker configuration
-REGISTRY ?= ghcr.io/majidmvulle
+REGISTRY ?= ghcr.io/majidmvulle/ibkr-client
 VERSION ?= v0.1.0
 PLATFORMS ?= linux/amd64,linux/arm64
 
@@ -124,6 +126,17 @@ docker-push:
 		-f ibkr-gateway/Dockerfile \
 		ibkr-gateway/
 	@echo "All images pushed successfully!"
+
+helm-package:
+	@echo "Packaging Helm chart..."
+	helm package infra/helm/charts/ibkr-client --version $(VERSION)
+
+helm-push:
+	@echo "Pushing Helm chart to OCI registry..."
+	helm package infra/helm/charts/ibkr-client --version $(VERSION)
+	helm push ibkr-client-$(VERSION).tgz oci://$(REGISTRY)
+	@echo "Helm chart pushed successfully!"
+	@rm -f ibkr-client-$(VERSION).tgz
 
 dev-up:
 	@echo "Starting development environment..."
