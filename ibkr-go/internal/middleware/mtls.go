@@ -21,6 +21,7 @@ func NewMTLSInterceptor(logger *slog.Logger) connect.UnaryInterceptorFunc {
 			peer := req.Peer()
 			if peer.Addr == "" {
 				logger.Warn("No peer information available")
+
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("no client certificate provided"))
 			}
 
