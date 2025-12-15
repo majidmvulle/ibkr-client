@@ -120,6 +120,23 @@ func shutdownTelemetry(tp *sdktrace.TracerProvider, logger *slog.Logger) {
 	}
 }
 
+func setupInterceptors(cfg *config.Config, sessionService *session.Service, logger *slog.Logger) connect.HandlerOption {
+	if cfg.MTLSEnabled {
+		// Use mTLS authentication.
+		return connect.WithInterceptors(
+			middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
+			middleware.NewMTLSInterceptor(logger), // Validate mTLS client certificates.
+			middleware.LoggingInterceptor(logger), // Log requests.
+		)
+	}
+
+	// No authentication (development mode).
+	return connect.WithInterceptors(
+		middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
+		middleware.LoggingInterceptor(logger), // Log requests.
+	)
+}
+
 func setupServer(
 	cfg *config.Config,
 	db *database.DB,
@@ -130,21 +147,7 @@ func setupServer(
 	mux := http.NewServeMux()
 
 	// Create ConnectRPC interceptors.
-	var interceptors connect.HandlerOption
-	if cfg.MTLSEnabled {
-		// Use mTLS authentication.
-		interceptors = connect.WithInterceptors(
-			middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
-			middleware.NewMTLSInterceptor(logger), // Validate mTLS client certificates.
-			middleware.LoggingInterceptor(logger), // Log requests.
-		)
-	} else {
-		// No authentication (development mode).
-		interceptors = connect.WithInterceptors(
-			middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
-			middleware.LoggingInterceptor(logger), // Log requests.
-		)
-	}
+	interceptors := setupInterceptors(cfg, sessionService, logger)
 
 	// Create service handlers.
 	orderHandler := api.NewOrderServiceHandler(ibkrClient)
