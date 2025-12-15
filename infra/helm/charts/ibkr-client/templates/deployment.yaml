@@ -165,8 +165,13 @@ spec:
           env:
             - name: GATEWAY_PORT
               value: "{{ .Values.ibkrGateway.port }}"
-      {{- with .Values.volumes }}
+          volumeMounts:
+            - name: gateway-cache
+              mountPath: /.vertx
       volumes:
+        - name: gateway-cache
+          emptyDir: {}
+      {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
