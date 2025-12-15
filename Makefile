@@ -54,7 +54,7 @@ test-integration:
 
 test-coverage:
 	@echo "Running tests with coverage..."
-	@cd ibkr-go && go test -v -short -coverprofile=coverage.out -covermode=atomic
+	@cd ibkr-go && go test -v -coverprofile=coverage.out -covermode=atomic $$(go list ./... | grep -v '/test/integration')
 	@cd ibkr-go && go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report: ibkr-go/coverage.html"
 

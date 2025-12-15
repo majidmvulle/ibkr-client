@@ -25,12 +25,6 @@ var testCtx *TestContext
 
 // TestMain sets up and tears down test resources.
 func TestMain(m *testing.M) {
-	// Skip integration tests when running with -short flag
-	if testing.Short() {
-		fmt.Println("Skipping integration tests in short mode")
-		os.Exit(0)
-	}
-
 	ctx := context.Background()
 
 	// Load test configuration
