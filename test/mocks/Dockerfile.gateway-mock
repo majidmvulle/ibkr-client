@@ -1,0 +1,15 @@
+FROM python:3.12-alpine
+
+WORKDIR /app
+
+# Install Flask
+RUN pip install --no-cache-dir flask
+
+# Copy mock server
+COPY mock_gateway.py .
+
+# Expose port
+EXPOSE 5000
+
+# Run the mock server
+CMD ["python", "mock_gateway.py"]

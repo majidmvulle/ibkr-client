@@ -1,55 +1,92 @@
 version: '3.8'
+
 services:
+  # PostgreSQL database for testing
   postgres:
-    image: postgres:17-alpine
+    image: postgres:16-alpine
+    container_name: ibkr-postgres
     environment:
-      POSTGRES_DB: ibkr
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ibkr_test
+      POSTGRES_USER: ibkr
+      POSTGRES_PASSWORD: ibkr_test_password
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5434:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ibkr -d ibkr_test"]
+      interval: 5s
       timeout: 5s
       retries: 5
 
-  # IBKR Client Portal Gateway (custom build)
-  ibkr-gateway:
+  # Run database migrations
+  migrations:
     build:
-      context: ./ibkr-gateway
-      dockerfile: Dockerfile
-    environment:
-      TWS_USERID: ${IBKR_USERNAME}
-      TWS_PASSWORD: ${IBKR_PASSWORD}
-      TRADING_MODE: paper  # or 'live'
-      READ_ONLY_API: "no"
-    ports:
-      - "5000:5000"  # Client Portal API
-    volumes:
-      - ibkr_settings:/root/Jts
-    restart: unless-stopped
-
-  ibkr-server:
-    build:
-      context: .
-      dockerfile: ibkr-go/Dockerfile
-    ports:
-      - "50051:50051"
-      - "8080:8080"
-    environment:
-      IBKR_GATEWAY_URL: http://ibkr-gateway:5000
-      DB_WRITE_DSN: postgres://postgres:password@postgres:5432/ibkr?sslmode=disable
-      DB_READ_DSN: postgres://postgres:password@postgres:5432/ibkr?sslmode=disable
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_COLLECTOR_ENDPOINT:-http://host.docker.internal:4317}
+      context: ./ibkr-go
+      dockerfile: Dockerfile.migrations
+    container_name: ibkr-migrations
     depends_on:
       postgres:
         condition: service_healthy
-      ibkr-gateway:
-        condition: service_started
+    environment:
+      DB_WRITE_DSN: postgres://ibkr:ibkr_test_password@postgres:5432/ibkr_test?sslmode=disable
+    command: ["goose", "-dir", "/migrations", "postgres", "postgres://ibkr:ibkr_test_password@postgres:5432/ibkr_test?sslmode=disable", "up"]
+
+  # Mock IBKR Gateway for testing
+  ibkr-gateway-mock:
+    build:
+      context: ./test/mocks
+      dockerfile: Dockerfile.gateway-mock
+    container_name: ibkr-gateway-mock
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/v1/api/tickle"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # IBKR Client service (for local testing)
+  ibkr-client:
+    build:
+      context: ./ibkr-go
+      dockerfile: Dockerfile
+    container_name: ibkr-client
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      ibkr-gateway-mock:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      APP_NAME: ibkr-client
+      APP_ENV: development
+      APP_DEBUG: "true"
+      APP_VERSION: dev
+      APP_HTTP_PORT: "8080"
+      APP_GRPC_PORT: "50051"
+      APP_LOG_LEVEL: "-4"
+      DB_WRITE_DSN: postgres://ibkr:ibkr_test_password@postgres:5432/ibkr_test?sslmode=disable
+      DB_READ_DSN: postgres://ibkr:ibkr_test_password@postgres:5432/ibkr_test?sslmode=disable
+      DB_LOG_LEVEL: "4"
+      ENCRYPTION_KEY: "12345678901234567890123456789012"
+      IBKR_GATEWAY_URL: http://ibkr-gateway-mock:5000
+      IBKR_ACCOUNT_ID: DU123456
+      MTLS_ENABLED: "false"
+      OTEL_COLLECTOR_ENDPOINT: ""
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./ibkr-go:/app
+    command: ["/app/bin/ibkr-server"]
 
 volumes:
   postgres_data:
-  ibkr_settings:
