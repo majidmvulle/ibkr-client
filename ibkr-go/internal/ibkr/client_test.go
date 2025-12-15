@@ -1,38 +1,87 @@
 package ibkr
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
-func TestNewClient(t *testing.T) {
-	tests := []struct {
-		name       string
-		gatewayURL string
-		accountID  string
-	}{
-		{
-			name:       "valid parameters",
-			gatewayURL: "http://localhost:5000",
-			accountID:  "U12345",
-		},
-		{
-			name:       "empty gateway URL",
-			gatewayURL: "",
-			accountID:  "U12345",
-		},
-		{
-			name:       "empty account ID",
-			gatewayURL: "http://localhost:5000",
-			accountID:  "",
-		},
-	}
+func TestClient_Ping(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v1/api/tickle" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			client := NewClient(tt.gatewayURL, tt.accountID)
-			if client == nil {
-				t.Error("NewClient() returned nil client")
-			}
-		})
+	client := NewClient(server.URL, "U12345")
+	err := client.Ping(context.Background())
+	if err != nil {
+		t.Errorf("Ping() error = %v", err)
+	}
+}
+
+func TestClient_Ping_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	err := client.Ping(context.Background())
+	if err == nil {
+		t.Error("Expected error from Ping()")
+	}
+}
+
+func TestClient_AuthStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"authenticated":true,"connected":true}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	status, err := client.AuthStatus(context.Background())
+	if err != nil {
+		t.Fatalf("AuthStatus() error = %v", err)
+	}
+	if !status.Authenticated {
+		t.Error("Expected authenticated = true")
+	}
+}
+
+func TestClient_Reauthenticate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	err := client.Reauthenticate(context.Background())
+	if err != nil {
+		t.Errorf("Reauthenticate() error = %v", err)
+	}
+}
+
+func TestClient_GetAccounts(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[{"id":"1","accountId":"U12345"}]`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "U12345")
+	accounts, err := client.GetAccounts(context.Background())
+	if err != nil {
+		t.Fatalf("GetAccounts() error = %v", err)
+	}
+	if len(accounts) != 1 {
+		t.Errorf("Expected 1 account, got %d", len(accounts))
 	}
 }
