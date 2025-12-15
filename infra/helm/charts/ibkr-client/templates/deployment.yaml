@@ -84,6 +84,16 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
+          volumeMounts:
+            {{- if .Values.tls.enabled }}
+            - name: server-tls
+              mountPath: {{ .Values.tls.serverCertPath }}
+              readOnly: true
+            - name: ca-cert
+              mountPath: {{ .Values.tls.caCertPath }}
+              readOnly: true
+            {{- end }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
@@ -106,7 +116,15 @@ spec:
             - name: IBKR_GATEWAY_URL
               value: {{ .Values.config.ibkrGatewayURL | quote }}
             - name: MTLS_ENABLED
-              value: {{ .Values.config.mtlsEnabled | quote }}
+              value: {{ .Values.tls.enabled | quote }}
+            {{- if .Values.tls.enabled }}
+            - name: MTLS_SERVER_CERT_PATH
+              value: "{{ .Values.tls.serverCertPath }}/tls.crt"
+            - name: MTLS_SERVER_KEY_PATH
+              value: "{{ .Values.tls.serverCertPath }}/tls.key"
+            - name: MTLS_CA_CERT_PATH
+              value: "{{ .Values.tls.caCertPath }}/ca.crt"
+            {{- end }}
             - name: OTEL_COLLECTOR_ENDPOINT
               value: {{ .Values.config.otelCollectorEndpoint | quote }}
             # Secrets from external Kubernetes Secret
@@ -175,9 +193,20 @@ spec:
           emptyDir: {}
         - name: gateway-logs
           emptyDir: {}
-      {{- with .Values.volumes }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- if .Values.tls.enabled }}
+        - name: server-tls
+          secret:
+            secretName: {{ include "ibkr-client.fullname" . }}-server-tls
+            defaultMode: 0400
+        - name: ca-cert
+          secret:
+            secretName: ca-secret
+            defaultMode: 0400
+            items:
+              - key: ca.crt
+                path: ca.crt
+        {{- end }}
+        {{- toYaml .Values.volumes | nindent 8 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
