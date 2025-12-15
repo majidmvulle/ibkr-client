@@ -137,6 +137,8 @@ spec:
         - name: ibkr-gateway
           image: {{ include "ibkr-client.ibkrGatewayImage" . }}
           imagePullPolicy: {{ .Values.ibkrGateway.image.pullPolicy }}
+          command: ["bin/run.sh"]
+          args: ["root/conf.yaml"]
           ports:
             - name: gateway
               containerPort: {{ .Values.ibkrGateway.port }}
