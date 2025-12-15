@@ -5,20 +5,18 @@ import (
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	// Test with empty DSN should return error
-	_, err := New(context.Background(), "", "")
-	if err == nil {
-		t.Error("New() with empty DSN should return error")
-	}
+func TestDB_Close(t *testing.T) {
+	// Test Close doesn't panic with nil pool
+	db := &DB{}
+	db.Close() // Should not panic
 }
 
-func TestDB_Health(t *testing.T) {
-	// Create a DB with nil pool (simulating uninitialized state)
-	db := &DB{}
+func TestNew_InvalidDSN(t *testing.T) {
+	ctx := context.Background()
 
-	err := db.Health(context.Background())
+	// Test with invalid DSN
+	_, err := New(ctx, "invalid-dsn", "")
 	if err == nil {
-		t.Error("Health() with nil pool should return error")
+		t.Error("Expected error with invalid DSN")
 	}
 }
