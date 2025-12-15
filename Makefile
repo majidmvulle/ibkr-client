@@ -1,31 +1,27 @@
-.PHONY: help proto proto-lint build test test-unit test-integration test-coverage go-lint docker-build docker-push gateway-build gateway-push sqlc-generate dev-up dev-down dev-logs dev-restart migrate-up migrate-down clean
-
-# Docker image configuration
-IMG ?= ibkr-client:latest
-GATEWAY_IMG ?= ibkr-gateway:latest
+.PHONY: help proto proto-lint build test test-unit test-integration test-coverage go-lint sqlc-generate docker-build docker-push helm-package helm-push dev-up dev-down dev-logs dev-restart migrate-up migrate-down clean
 
 help:
 	@echo "Available targets:"
-	@echo "  proto            - Generate protobuf code"
-	@echo "  proto-lint       - Lint protobuf files"
-	@echo "  build            - Build all Go modules"
-	@echo "  test             - Run all tests"
-	@echo "  test-unit        - Run unit tests only"
-	@echo "  test-integration - Run integration tests only"
-	@echo "  test-coverage    - Run tests with coverage report"
-	@echo "  go-lint          - Lint all Go modules"
-	@echo "  sqlc-generate    - Generate type-safe Go code from SQL"
-	@echo "  docker-build     - Build Docker image (IMG=<image:tag>)"
-	@echo "  docker-push      - Push Docker image (IMG=<image:tag>)"
-	@echo "  gateway-build    - Build IBKR Gateway image (GATEWAY_IMG=<image:tag>)"
-	@echo "  gateway-push     - Push IBKR Gateway image (GATEWAY_IMG=<image:tag>)"
-	@echo "  dev-up           - Start local dev environment"
-	@echo "  dev-down         - Stop local dev environment"
-	@echo "  dev-logs         - Show logs from dev environment"
-	@echo "  dev-restart      - Restart dev environment"
-	@echo "  migrate-up       - Run database migrations"
-	@echo "  migrate-down     - Rollback database migrations"
-	@echo "  clean            - Clean build artifacts"
+	@echo "  proto                  - Generate protobuf code"
+	@echo "  proto-lint             - Lint protobuf files"
+	@echo "  build                  - Build all Go modules"
+	@echo "  test                   - Run all tests"
+	@echo "  test-unit              - Run unit tests only"
+	@echo "  test-integration       - Run integration tests only"
+	@echo "  test-coverage          - Run tests with coverage report"
+	@echo "  go-lint                - Lint all Go modules"
+	@echo "  sqlc-generate          - Generate type-safe Go code from SQL"
+	@echo "  docker-build           - Build all images (server, migrations, gateway) for multiple platforms"
+	@echo "  docker-push            - Push all images to registry"
+	@echo "  helm-package           - Package Helm chart"
+	@echo "  helm-push              - Package and push Helm chart to OCI registry"
+	@echo "  dev-up                 - Start local dev environment"
+	@echo "  dev-down               - Stop local dev environment"
+	@echo "  dev-logs               - Show logs from dev environment"
+	@echo "  dev-restart            - Restart dev environment"
+	@echo "  migrate-up             - Run database migrations"
+	@echo "  migrate-down           - Rollback database migrations"
+	@echo "  clean                  - Clean build artifacts"
 
 proto:
 	cd proto && buf generate
@@ -62,6 +58,17 @@ test-coverage-report:
 	@echo "Coverage summary:"
 	cd ibkr-go && go tool cover -func=coverage.out
 
+# Docker configuration
+REGISTRY ?= ghcr.io/majidmvulle/ibkr-client
+OCI_REGISTRY ?= ghcr.io/majidmvulle/charts
+VERSION ?= v0.1.0
+PLATFORMS ?= linux/amd64,linux/arm64
+
+# Image names
+SERVER_IMAGE := $(REGISTRY)/ibkr-client
+MIGRATIONS_IMAGE := $(REGISTRY)/ibkr-client-migrations
+GATEWAY_IMAGE := $(REGISTRY)/ibkr-gateway
+
 go-lint:
 	cd ibkr-go && golangci-lint run ./... --fix
 
@@ -69,16 +76,68 @@ sqlc-generate:
 	cd ibkr-go && sqlc generate
 
 docker-build:
-	docker build -t $(IMG) -f ibkr-go/Dockerfile .
+	@echo "Building all images for $(PLATFORMS)..."
+	@echo "Building server image..."
+	docker buildx build \
+		--platform $(PLATFORMS) \
+		-t $(SERVER_IMAGE):$(VERSION) \
+		-t $(SERVER_IMAGE):latest \
+		-f ibkr-go/Dockerfile \
+		ibkr-go/
+	@echo "Building migrations image..."
+	docker buildx build \
+		--platform $(PLATFORMS) \
+		-t $(MIGRATIONS_IMAGE):$(VERSION) \
+		-t $(MIGRATIONS_IMAGE):latest \
+		-f ibkr-go/Dockerfile.migrations \
+		ibkr-go/
+	@echo "Building IBKR Gateway image..."
+	docker buildx build \
+		--platform $(PLATFORMS) \
+		-t $(GATEWAY_IMAGE):$(VERSION) \
+		-t $(GATEWAY_IMAGE):latest \
+		-f ibkr-gateway/Dockerfile \
+		ibkr-gateway/
+	@echo "All images built successfully!"
 
 docker-push:
-	docker push $(IMG)
+	@echo "Pushing all images to $(REGISTRY)..."
+	@echo "Pushing server image..."
+	docker buildx build \
+		--platform $(PLATFORMS) \
+		--push \
+		-t $(SERVER_IMAGE):$(VERSION) \
+		-t $(SERVER_IMAGE):latest \
+		-f ibkr-go/Dockerfile \
+		ibkr-go/
+	@echo "Pushing migrations image..."
+	docker buildx build \
+		--platform $(PLATFORMS) \
+		--push \
+		-t $(MIGRATIONS_IMAGE):$(VERSION) \
+		-t $(MIGRATIONS_IMAGE):latest \
+		-f ibkr-go/Dockerfile.migrations \
+		ibkr-go/
+	@echo "Pushing IBKR Gateway image..."
+	docker buildx build \
+		--platform $(PLATFORMS) \
+		--push \
+		-t $(GATEWAY_IMAGE):$(VERSION) \
+		-t $(GATEWAY_IMAGE):latest \
+		-f ibkr-gateway/Dockerfile \
+		ibkr-gateway/
+	@echo "All images pushed successfully!"
 
-gateway-build:
-	docker build -t $(GATEWAY_IMG) -f ibkr-gateway/Dockerfile ibkr-gateway
+helm-package:
+	@echo "Packaging Helm chart..."
+	helm package infra/helm/charts/ibkr-client --version $(VERSION)
 
-gateway-push:
-	docker push $(GATEWAY_IMG)
+helm-push:
+	@echo "Pushing Helm chart to OCI registry..."
+	helm package infra/helm/charts/ibkr-client --version $(VERSION)
+	helm push ibkr-client-$(VERSION).tgz oci://$(OCI_REGISTRY)
+	@echo "Helm chart pushed successfully!"
+	@rm -f ibkr-client-$(VERSION).tgz
 
 dev-up:
 	@echo "Starting development environment..."
