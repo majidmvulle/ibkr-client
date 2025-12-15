@@ -56,10 +56,12 @@ def place_order(account_id):
     }
     MOCK_ORDERS.append(order)
 
-    return jsonify([{
+    return jsonify({
         "id": order_id,
-        "message": ["Order placed successfully"]
-    }])
+        "message": ["Order placed successfully"],
+        "order_id": order_id,
+        "order_status": "Submitted"
+    })
 
 @app.route('/v1/api/iserver/account/<account_id>/order/<order_id>', methods=['POST'])
 def modify_order(account_id, order_id):
@@ -143,15 +145,17 @@ def get_positions(account_id):
 def get_account_summary(account_id):
     """Get account summary"""
     return jsonify({
-        "accountcode": {"amount": account_id, "severity": 0},
-        "accountready": {"amount": "true", "severity": 0},
-        "accounttype": {"amount": "DEMO", "severity": 0},
-        "cushion": {"amount": "1", "severity": 0},
-        "daytradesremaining": {"amount": "-1", "severity": 0},
-        "netliquidation": {"amount": "100000.00", "severity": 0, "currency": "USD"},
-        "totalcashvalue": {"amount": "85000.00", "severity": 0, "currency": "USD"},
-        "equity": {"amount": "100000.00", "severity": 0},
-        "previousdayequitywithloanvalue": {"amount": "99500.00", "severity": 0}
+        "accountcode": account_id,
+        "accountready": "true",
+        "accounttype": "DEMO",
+        "cushion": "1",
+        "daytradesremaining": "-1",
+        "netliquidation": "100000.00",
+        "netliquidation-c": "USD",
+        "totalcashvalue": "85000.00",
+        "totalcashvalue-c": "USD",
+        "equity": "100000.00",
+        "previousdayequitywithloanvalue": "99500.00"
     })
 
 @app.route('/v1/api/iserver/marketdata/snapshot', methods=['GET'])
@@ -208,11 +212,10 @@ def get_historical_data():
         "travelTime": 10
     })
 
-@app.route('/v1/api/iserver/secdef/search', methods=['POST'])
+@app.route('/v1/api/iserver/secdef/search', methods=['GET'])
 def search_contracts():
     """Search for contracts"""
-    search_data = request.json
-    symbol = search_data.get('symbol', '')
+    symbol = request.args.get('symbol', '')
 
     return jsonify([
         {
