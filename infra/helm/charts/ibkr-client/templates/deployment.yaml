@@ -60,7 +60,6 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ include "ibkr-client.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["./app/server"]
           ports:
             - name: http
               containerPort: {{ .Values.config.httpPort }}
