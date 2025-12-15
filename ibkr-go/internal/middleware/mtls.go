@@ -27,20 +27,14 @@ func NewMTLSInterceptor(logger *slog.Logger) connect.UnaryInterceptorFunc {
 			// In a real mTLS setup, the certificate is validated during the TLS handshake.
 			// The server's TLS config (ClientAuth: RequireAndVerifyClientCert) ensures
 			// that only valid certificates signed by the trusted CA are accepted.
-			//
-			// At this point, we know the certificate is valid. We extract the identity
-			// from the certificate's Common Name or Subject Alternative Names.
-			//
-			// Note: In Go's http.Server with TLS, the verified certificate chain is
-			// available in the request's TLS.PeerCertificates field. However, Connect-RPC
-			// doesn't expose this directly. We'll need to extract it from the underlying
-			// HTTP request in the server setup.
+			// At this point, we know the certificate is valid.
 
 			// For now, we'll add a placeholder that will be populated by the server's
 			// TLS verification. The actual certificate validation happens at the TLS layer.
 			clientIdentity := extractClientIdentity(ctx)
 			if clientIdentity == "" {
 				logger.Warn("Failed to extract client identity from certificate")
+
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid client certificate"))
 			}
 

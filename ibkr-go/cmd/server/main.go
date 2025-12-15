@@ -206,12 +206,14 @@ func startServer(server *http.Server, logger *slog.Logger, tlsEnabled bool) {
 	go func() {
 		if tlsEnabled {
 			logger.Info("Server starting with mTLS", slog.String("addr", server.Addr))
+
 			if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
 				logger.Error("Server failed", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
 		} else {
 			logger.Info("Server starting", slog.String("addr", server.Addr))
+
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				logger.Error("Server failed", slog.String("error", err.Error()))
 				os.Exit(1)
