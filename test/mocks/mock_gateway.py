@@ -48,18 +48,20 @@ def place_order(account_id):
     """Place order"""
     order_data = request.json
     order_id = f"ORDER{len(MOCK_ORDERS) + 1}"
-    
+
     order = {
         "order_id": order_id,
         "order_status": "Submitted",
         "encrypt_message": "1"
     }
     MOCK_ORDERS.append(order)
-    
-    return jsonify([{
+
+    return jsonify({
         "id": order_id,
-        "message": ["Order placed successfully"]
-    }])
+        "message": ["Order placed successfully"],
+        "order_id": order_id,
+        "order_status": "Submitted"
+    })
 
 @app.route('/v1/api/iserver/account/<account_id>/order/<order_id>', methods=['POST'])
 def modify_order(account_id, order_id):
@@ -143,22 +145,24 @@ def get_positions(account_id):
 def get_account_summary(account_id):
     """Get account summary"""
     return jsonify({
-        "accountcode": {"amount": account_id, "severity": 0},
-        "accountready": {"amount": "true", "severity": 0},
-        "accounttype": {"amount": "DEMO", "severity": 0},
-        "cushion": {"amount": "1", "severity": 0},
-        "daytradesremaining": {"amount": "-1", "severity": 0},
-        "netliquidation": {"amount": "100000.00", "severity": 0, "currency": "USD"},
-        "totalcashvalue": {"amount": "85000.00", "severity": 0, "currency": "USD"},
-        "equity": {"amount": "100000.00", "severity": 0},
-        "previousdayequitywithloanvalue": {"amount": "99500.00", "severity": 0}
+        "accountcode": account_id,
+        "accountready": "true",
+        "accounttype": "DEMO",
+        "cushion": "1",
+        "daytradesremaining": "-1",
+        "netliquidation": "100000.00",
+        "netliquidation-c": "USD",
+        "totalcashvalue": "85000.00",
+        "totalcashvalue-c": "USD",
+        "equity": "100000.00",
+        "previousdayequitywithloanvalue": "99500.00"
     })
 
 @app.route('/v1/api/iserver/marketdata/snapshot', methods=['GET'])
 def get_market_data():
     """Get market data snapshot"""
     conids = request.args.get('conids', '').split(',')
-    
+
     snapshots = []
     for conid in conids:
         if conid:
@@ -175,7 +179,7 @@ def get_market_data():
                 "7296": "150.00", # Close
                 "_updated": int(time.time() * 1000)
             })
-    
+
     return jsonify(snapshots)
 
 @app.route('/v1/api/iserver/marketdata/history', methods=['GET'])
@@ -208,12 +212,11 @@ def get_historical_data():
         "travelTime": 10
     })
 
-@app.route('/v1/api/iserver/secdef/search', methods=['POST'])
+@app.route('/v1/api/iserver/secdef/search', methods=['GET'])
 def search_contracts():
     """Search for contracts"""
-    search_data = request.json
-    symbol = search_data.get('symbol', '')
-    
+    symbol = request.args.get('symbol', '')
+
     return jsonify([
         {
             "conid": 265598,
@@ -237,5 +240,5 @@ def search_contracts():
     ])
 
 if __name__ == '__main__':
-    print("Starting Mock IBKR Gateway on port 5000...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("Starting Mock IBKR Gateway on port 5555...")
+    app.run(host='0.0.0.0', port=5555, debug=False)

@@ -52,11 +52,13 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go mod tidy
 
-      - name: Run Go tests with coverage
+      - name: Run tests with coverage
         working-directory: ${{ matrix.module }}
         run: |
           mkdir -p ./.coverage
-          go test -v -race ./... -coverprofile=./.coverage/coverage.out -coverpkg=./... -covermode=atomic
+          # Run unit tests only (skip integration tests which require docker-compose)
+          go test -v -short -race -coverprofile=./.coverage/coverage.out -covermode=atomic $(go list ./... | grep -v '/test/integration')
+          go tool cover -html=./.coverage/coverage.out -o ./.coverage/coverage.html
 
       - name: Generate Test Coverage
         working-directory: ${{ matrix.module }}

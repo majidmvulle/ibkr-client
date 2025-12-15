@@ -46,7 +46,11 @@ test-unit:
 
 test-integration:
 	@echo "Running integration tests..."
-	cd ibkr-go && go test -v -run Integration ./test/integration/...
+	@if [ ! -f .env.test ]; then \
+		echo "Creating .env.test from .env.test.example..."; \
+		cp .env.test.example .env.test; \
+	fi
+	@set -a && . ./.env.test && set +a && cd ibkr-go && go test -v -run Integration ./test/integration/...
 
 test-coverage:
 	@echo "Running tests with coverage..."
