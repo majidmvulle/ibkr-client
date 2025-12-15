@@ -60,6 +60,7 @@ test-coverage-report:
 
 # Docker configuration
 REGISTRY ?= ghcr.io/majidmvulle/ibkr-client
+OCI_REGISTRY ?= ghcr.io/majidmvulle/charts
 VERSION ?= v0.1.0
 PLATFORMS ?= linux/amd64,linux/arm64
 
@@ -134,7 +135,7 @@ helm-package:
 helm-push:
 	@echo "Pushing Helm chart to OCI registry..."
 	helm package infra/helm/charts/ibkr-client --version $(VERSION)
-	helm push ibkr-client-$(VERSION).tgz oci://$(REGISTRY)
+	helm push ibkr-client-$(VERSION).tgz oci://$(OCI_REGISTRY)
 	@echo "Helm chart pushed successfully!"
 	@rm -f ibkr-client-$(VERSION).tgz
 

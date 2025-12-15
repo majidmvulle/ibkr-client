@@ -71,12 +71,14 @@ Image name for main application
 Image name for migrations
 */}}
 {{- define "ibkr-client.migrationsImage" -}}
-{{- printf "%s:%s" .Values.migrations.image.repository .Values.migrations.image.tag }}
+{{- $tag := .Values.migrations.image.tag | default .Chart.AppVersion }}
+{{- printf "%s:%s" .Values.migrations.image.repository $tag }}
 {{- end }}
 
 {{/*
 Image name for IBKR Gateway
 */}}
 {{- define "ibkr-client.ibkrGatewayImage" -}}
-{{- printf "%s:%s" .Values.ibkrGateway.image.repository .Values.ibkrGateway.image.tag }}
+{{- $tag := .Values.ibkrGateway.image.tag | default .Chart.AppVersion }}
+{{- printf "%s:%s" .Values.ibkrGateway.image.repository $tag }}
 {{- end }}
