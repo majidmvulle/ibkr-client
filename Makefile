@@ -46,11 +46,11 @@ test-integration:
 		echo "Creating .env.test from .env.test.example..."; \
 		cp .env.test.example .env.test; \
 	fi
-	@set -a && . ./.env.test && set +a && cd ibkr-go && go test -v -run Integration ./test/integration/...
+	@set -a && . ./.env.test && set +a && cd ibkr-go && go test -v -tags=integration ./test/integration/...
 
 test-coverage:
-	@echo "Running tests with coverage..."
-	cd ibkr-go && go test -v -short -coverprofile=coverage.out -covermode=atomic ./...
+	@echo "Running tests with coverage (unit tests only)..."
+	cd ibkr-go && go test -race -coverprofile=coverage.out -covermode=atomic ./...
 	cd ibkr-go && go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report: ibkr-go/coverage.html"
 
