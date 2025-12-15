@@ -74,7 +74,7 @@ func main() {
 
 	// Create and start HTTP server.
 	server := setupServer(cfg, db, ibkrClient, sessionService)
-	startServer(server, logger)
+	startServer(server, logger, cfg.MTLSEnabled)
 
 	// Wait for shutdown signal.
 	waitForShutdown(server, logger)
@@ -130,11 +130,21 @@ func setupServer(
 	mux := http.NewServeMux()
 
 	// Create ConnectRPC interceptors.
-	interceptors := connect.WithInterceptors(
-		middleware.NewValidationInterceptor(),            // Validate requests with protovalidate.
-		middleware.NewSessionInterceptor(sessionService), // Validate sessions.
-		middleware.LoggingInterceptor(logger),            // Log requests.
-	)
+	var interceptors connect.HandlerOption
+	if cfg.MTLSEnabled {
+		// Use mTLS authentication.
+		interceptors = connect.WithInterceptors(
+			middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
+			middleware.NewMTLSInterceptor(logger), // Validate mTLS client certificates.
+			middleware.LoggingInterceptor(logger), // Log requests.
+		)
+	} else {
+		// No authentication (development mode).
+		interceptors = connect.WithInterceptors(
+			middleware.NewValidationInterceptor(), // Validate requests with protovalidate.
+			middleware.LoggingInterceptor(logger), // Log requests.
+		)
+	}
 
 	// Create service handlers.
 	orderHandler := api.NewOrderServiceHandler(ibkrClient)
@@ -176,19 +186,36 @@ func setupServer(
 
 	addr := fmt.Sprintf(":%d", cfg.HTTPPort)
 
-	return &http.Server{
+	server := &http.Server{
 		Addr:    addr,
 		Handler: h2c.NewHandler(mux, &http2.Server{}),
 	}
+
+	// Configure TLS if enabled.
+	if cfg.MTLSEnabled {
+		if err := configureTLS(server, cfg); err != nil {
+			logger.Error("Failed to configure TLS", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	return server
 }
 
-func startServer(server *http.Server, logger *slog.Logger) {
+func startServer(server *http.Server, logger *slog.Logger, tlsEnabled bool) {
 	go func() {
-		logger.Info("Server starting", slog.String("addr", server.Addr))
-
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error("Server failed", slog.String("error", err.Error()))
-			os.Exit(1)
+		if tlsEnabled {
+			logger.Info("Server starting with mTLS", slog.String("addr", server.Addr))
+			if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
+				logger.Error("Server failed", slog.String("error", err.Error()))
+				os.Exit(1)
+			}
+		} else {
+			logger.Info("Server starting", slog.String("addr", server.Addr))
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Error("Server failed", slog.String("error", err.Error()))
+				os.Exit(1)
+			}
 		}
 	}()
 }
