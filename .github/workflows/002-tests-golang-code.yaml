@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
-      
+
       - name: Discover Go modules
         id: set-matrix
         run: |
@@ -28,6 +28,7 @@ jobs:
           echo "modules=$modules" >> $GITHUB_OUTPUT
 
   test-coverage-golang:
+    name: "Test Golang Code with Coverage"
     needs: discover-modules
     timeout-minutes: 5
     runs-on: ubuntu-latest
