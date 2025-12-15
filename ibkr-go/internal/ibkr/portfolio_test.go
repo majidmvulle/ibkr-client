@@ -2,6 +2,7 @@ package ibkr
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,7 +30,23 @@ func TestClient_GetAccountSummary(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"netliquidation":{"amount":"10000"},"currency":"USD"}`))
+		// Return valid JSON matching AccountSummary struct
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"accountcode":                    "U12345",
+			"accounttype":                    "INDIVIDUAL",
+			"netliquidation":                 100000.50,
+			"totalcashvalue":                 50000.25,
+			"settledcash":                    45000.00,
+			"accruedcash":                    100.50,
+			"buyingpower":                    200000.00,
+			"equitywithloanvalue":            95000.00,
+			"previousdayequitywithloanvalue": 94000.00,
+			"grosspositionvalue":             50000.00,
+			"regtequity":                     100000.00,
+			"regtmargin":                     25000.00,
+			"sma":                            10000.00,
+			"currency":                       "USD",
+		})
 	}))
 	defer server.Close()
 

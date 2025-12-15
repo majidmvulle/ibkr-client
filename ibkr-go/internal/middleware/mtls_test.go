@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"context"
-	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"testing"
 
 	"log/slog"
@@ -41,7 +41,7 @@ func TestExtractClientIdentity_AllCases(t *testing.T) {
 	}{
 		{"nil cert", nil, ""},
 		{"empty CN", &x509.Certificate{}, ""},
-		{"with CN", &x509.Certificate{Subject: x509.Subject{CommonName: "test"}}, "test"},
+		{"with CN", &x509.Certificate{Subject: pkix.Name{CommonName: "test"}}, "test"},
 	}
 
 	for _, tt := range tests {
@@ -54,25 +54,15 @@ func TestExtractClientIdentity_AllCases(t *testing.T) {
 	}
 }
 
-func TestValidateMTLSConnection_AllPaths(t *testing.T) {
-	// Test with nil connection state
-	identity := ValidateMTLSConnection(nil)
-	if identity != "" {
-		t.Errorf("Expected empty identity for nil connection, got %v", identity)
+func TestExtractClientIdentityFromCert_WithDNSNames(t *testing.T) {
+	// Test fallback to DNS names when CN is empty
+	cert := &x509.Certificate{
+		Subject:  pkix.Name{CommonName: ""},
+		DNSNames: []string{"client.example.com", "alt.example.com"},
 	}
 
-	// Test with empty peer certificates
-	state := &tls.ConnectionState{}
-	identity = ValidateMTLSConnection(state)
-	if identity != "" {
-		t.Errorf("Expected empty identity for no peer certs, got %v", identity)
-	}
-
-	// Test with peer certificate
-	cert := &x509.Certificate{Subject: x509.Subject{CommonName: "client"}}
-	state = &tls.ConnectionState{PeerCertificates: []*x509.Certificate{cert}}
-	identity = ValidateMTLSConnection(state)
-	if identity != "client" {
-		t.Errorf("Expected 'client', got %v", identity)
+	got := ExtractClientIdentityFromCert(cert)
+	if got != "client.example.com" {
+		t.Errorf("Expected 'client.example.com', got %v", got)
 	}
 }

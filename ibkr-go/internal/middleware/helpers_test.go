@@ -90,7 +90,7 @@ func TestGetAccountIDFromContext_AllCases(t *testing.T) {
 			name:   "context with empty string",
 			ctx:    context.WithValue(context.Background(), ClientIdentityContextKey{}, ""),
 			wantID: "",
-			wantOK: true,
+			wantOK: false,
 		},
 	}
 

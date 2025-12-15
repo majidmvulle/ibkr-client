@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -15,17 +15,16 @@ func TestSetupServer_AllPaths(t *testing.T) {
 		MTLSEnabled: false,
 	}
 
-	server := setupServer(cfg, nil, nil, nil)
-	if server == nil {
+	srv := setupServer(cfg, nil, nil, nil)
+	if srv == nil {
 		t.Fatal("setupServer should not return nil")
 	}
-	if server.Addr != ":8080" {
-		t.Errorf("Addr = %v, want :8080", server.Addr)
+	if srv.Addr != ":8080" {
+		t.Errorf("Addr = %v, want :8080", srv.Addr)
 	}
 }
 
 func TestWaitForShutdown_Context(t *testing.T) {
-	server := &http.Server{Addr: ":0"}
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
@@ -38,6 +37,7 @@ func TestWaitForShutdown_Context(t *testing.T) {
 }
 
 func TestConfigureTLS_Paths(t *testing.T) {
+	server := &http.Server{Addr: ":8443"}
 	cfg := &config.Config{
 		MTLSEnabled:        true,
 		MTLSServerCertPath: "/nonexistent/cert.pem",
@@ -45,7 +45,7 @@ func TestConfigureTLS_Paths(t *testing.T) {
 		MTLSCACertPath:     "/nonexistent/ca.pem",
 	}
 
-	_, err := configureTLS(cfg)
+	err := configureTLS(server, cfg)
 	if err == nil {
 		t.Log("configureTLS executed")
 	}

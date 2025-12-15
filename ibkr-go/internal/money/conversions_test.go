@@ -2,6 +2,8 @@ package money
 
 import (
 	"testing"
+
+	moneyv1 "github.com/majidmvulle/ibkr-client/proto/gen/go/api/common/money/v1"
 )
 
 func TestFromFloat64_AllCases(t *testing.T) {
@@ -31,8 +33,8 @@ func TestFromFloat64_AllCases(t *testing.T) {
 				if money == nil {
 					t.Error("Expected non-nil money")
 				}
-				if money.Currency != tt.currency {
-					t.Errorf("Currency = %v, want %v", money.Currency, tt.currency)
+				if money.CurrencyCode != tt.currency {
+					t.Errorf("CurrencyCode = %v, want %v", money.CurrencyCode, tt.currency)
 				}
 			}
 		})
@@ -42,19 +44,20 @@ func TestFromFloat64_AllCases(t *testing.T) {
 func TestToFloat64_AllCases(t *testing.T) {
 	tests := []struct {
 		name     string
-		amount   int64
+		units    int64
+		nanos    int64
 		currency string
 		want     float64
 	}{
-		{"positive", 10050, "USD", 100.50},
-		{"negative", -5025, "USD", -50.25},
-		{"zero", 0, "USD", 0.0},
-		{"large", 99999999, "USD", 999999.99},
+		{"positive", 100, 500000000000000000, "USD", 100.5},
+		{"negative", -50, -250000000000000000, "USD", -50.25},
+		{"zero", 0, 0, "USD", 0.0},
+		{"large", 999999, 990000000000000000, "USD", 999999.99},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			money := &Money{Amount: tt.amount, Currency: tt.currency}
+			money := &moneyv1.Money{Units: tt.units, Nanos: tt.nanos, CurrencyCode: tt.currency}
 			got := ToFloat64(money)
 			if got != tt.want {
 				t.Errorf("ToFloat64() = %v, want %v", got, tt.want)
