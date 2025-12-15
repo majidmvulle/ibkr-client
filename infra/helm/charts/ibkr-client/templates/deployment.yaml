@@ -56,6 +56,7 @@ spec:
       containers:
         # Main application container
         - name: {{ .Chart.Name }}
+          command: [""]
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ include "ibkr-client.image" . }}
@@ -164,8 +165,17 @@ spec:
           env:
             - name: GATEWAY_PORT
               value: "{{ .Values.ibkrGateway.port }}"
-      {{- with .Values.volumes }}
+          volumeMounts:
+            - name: gateway-cache
+              mountPath: /app/.vertx
+            - name: gateway-logs
+              mountPath: /app/logs
       volumes:
+        - name: gateway-cache
+          emptyDir: {}
+        - name: gateway-logs
+          emptyDir: {}
+      {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}

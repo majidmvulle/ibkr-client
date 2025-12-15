@@ -17,4 +17,4 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 
 EXPOSE 50051 8080
 
-CMD ["./server"]
+ENTRYPOINT ["./server"]

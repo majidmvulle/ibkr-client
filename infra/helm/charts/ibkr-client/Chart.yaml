@@ -2,8 +2,8 @@ apiVersion: v2
 name: ibkr-client
 description: IBKR Client Portal Gateway middleware service
 type: application
-version: 0.1.2
-appVersion: "0.1.0"
+version: 0.1.11
+appVersion: "0.1.1"
 keywords:
   - ibkr
   - trading
