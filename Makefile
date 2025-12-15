@@ -64,7 +64,7 @@ PLATFORMS ?= linux/amd64,linux/arm64
 # Image names
 SERVER_IMAGE := $(REGISTRY)/ibkr-client
 MIGRATIONS_IMAGE := $(REGISTRY)/ibkr-client-migrations
-GATEWAY_IMAGE := $(REGISTRY)/ibkr-gateway-mock
+GATEWAY_IMAGE := $(REGISTRY)/ibkr-gateway
 
 go-lint:
 	cd ibkr-go && golangci-lint run ./... --fix
@@ -88,13 +88,13 @@ docker-build:
 		-t $(MIGRATIONS_IMAGE):latest \
 		-f ibkr-go/Dockerfile.migrations \
 		ibkr-go/
-	@echo "Building gateway mock image..."
+	@echo "Building IBKR Gateway image..."
 	docker buildx build \
 		--platform $(PLATFORMS) \
 		-t $(GATEWAY_IMAGE):$(VERSION) \
 		-t $(GATEWAY_IMAGE):latest \
-		-f test/mocks/Dockerfile.gateway-mock \
-		test/mocks/
+		-f ibkr-gateway/Dockerfile \
+		ibkr-gateway/
 	@echo "All images built successfully!"
 
 docker-push:
@@ -115,14 +115,14 @@ docker-push:
 		-t $(MIGRATIONS_IMAGE):latest \
 		-f ibkr-go/Dockerfile.migrations \
 		ibkr-go/
-	@echo "Pushing gateway mock image..."
+	@echo "Pushing IBKR Gateway image..."
 	docker buildx build \
 		--platform $(PLATFORMS) \
 		--push \
 		-t $(GATEWAY_IMAGE):$(VERSION) \
 		-t $(GATEWAY_IMAGE):latest \
-		-f test/mocks/Dockerfile.gateway-mock \
-		test/mocks/
+		-f ibkr-gateway/Dockerfile \
+		ibkr-gateway/
 	@echo "All images pushed successfully!"
 
 dev-up:
