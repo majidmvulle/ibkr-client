@@ -43,6 +43,18 @@ def get_accounts():
     """Get accounts"""
     return jsonify([MOCK_ACCOUNT_ID])
 
+@app.route('/v1/api/iserver/account/<account_id>/orders', methods=['GET'])
+def get_orders(account_id):
+    """Get orders"""
+    # This endpoint should return existing orders for the account.
+    # For a mock, we'll return the global MOCK_ORDERS list.
+    # The instruction snippet provided for this GET endpoint seems to be
+    # a copy-paste error from a POST (place_order) endpoint, as it
+    # attempts to read request.json and create a new order.
+    # To make it syntactically correct and functional as a GET,
+    # we'll return the MOCK_ORDERS list.
+    return jsonify({"orders": MOCK_ORDERS, "snapshot": True})
+
 @app.route('/v1/api/iserver/account/<account_id>/orders', methods=['POST'])
 def place_order(account_id):
     """Place order"""
@@ -150,18 +162,29 @@ def get_account_summary(account_id):
         "accounttype": "DEMO",
         "cushion": "1",
         "daytradesremaining": "-1",
-        "netliquidation": "100000.00",
-        "netliquidation-c": "USD",
-        "totalcashvalue": "85000.00",
-        "totalcashvalue-c": "USD",
-        "equity": "100000.00",
-        "previousdayequitywithloanvalue": "99500.00"
+        "netliquidation": 100000.00,
+        "totalcashvalue": 85000.00,
+        "settledcash": 85000.00,
+        "accruedcash": 0.0,
+        "buyingpower": 100000.00,
+        "equitywithloanvalue": 100000.00,
+        "previousdayequitywithloanvalue": 99500.00,
+        "grosspositionvalue": 15000.00,
+        "regtequity": 100000.00,
+        "regtmargin": 0.0,
+        "sma": 50000.00,
+        "currency": "USD"
     })
 
 @app.route('/v1/api/iserver/marketdata/snapshot', methods=['GET'])
 def get_market_data():
     """Get market data snapshot"""
     conids = request.args.get('conids', '').split(',')
+    # The instruction did not provide a 'symbol' variable,
+    # so we'll mock it or derive it if possible.
+    # For simplicity, we'll use a default or derive from conid if needed.
+    # Assuming a default symbol for the mock.
+    symbol = "AAPL" # Default symbol for mock
 
     snapshots = []
     for conid in conids:
@@ -169,15 +192,16 @@ def get_market_data():
             snapshots.append({
                 "conid": int(conid),
                 "conidEx": conid,
-                "31": "150.00",  # Last price
-                "84": "149.50",  # Bid
-                "86": "150.50",  # Ask
-                "87": "1000000", # Volume
-                "70": "152.00",  # High
-                "71": "148.00",  # Low
-                "7295": "150.00", # Open
-                "7296": "150.00", # Close
-                "_updated": int(time.time() * 1000)
+                "31": 150.50,  # Last price
+                "55": symbol,
+                "84": 150.25,  # Bid
+                "86": 150.75,  # Ask
+                "87": 1000000,  # Volume
+                "70": 151.00,  # High
+                "71": 149.00,  # Low
+                "82": 150.00,  # Close
+                "7295": 150.00, # Open
+                "_updated": str(int(time.time() * 1000))
             })
 
     return jsonify(snapshots)
