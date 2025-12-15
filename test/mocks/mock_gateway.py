@@ -180,11 +180,6 @@ def get_account_summary(account_id):
 def get_market_data():
     """Get market data snapshot"""
     conids = request.args.get('conids', '').split(',')
-    # The instruction did not provide a 'symbol' variable,
-    # so we'll mock it or derive it if possible.
-    # For simplicity, we'll use a default or derive from conid if needed.
-    # Assuming a default symbol for the mock.
-    symbol = "AAPL" # Default symbol for mock
 
     snapshots = []
     for conid in conids:
@@ -193,7 +188,7 @@ def get_market_data():
                 "conid": int(conid),
                 "conidEx": conid,
                 "31": 150.50,  # Last price
-                "55": symbol,
+                "55": "AAPL",
                 "84": 150.25,  # Bid
                 "86": 150.75,  # Ask
                 "87": 1000000,  # Volume
