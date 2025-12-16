@@ -66,3 +66,11 @@ func TestExtractClientIdentityFromCert_WithDNSNames(t *testing.T) {
 		t.Errorf("Expected 'client.example.com', got %v", got)
 	}
 }
+
+func TestExtractClientIdentity_Internal(t *testing.T) {
+	ctx := context.Background()
+	got := extractClientIdentity(ctx)
+	if got != "" {
+		t.Errorf("extractClientIdentity() = %v, want empty string", got)
+	}
+}

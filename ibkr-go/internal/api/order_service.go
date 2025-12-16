@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"connectrpc.com/connect"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/ibkr"
@@ -365,14 +364,4 @@ func mapOrderTypeFromString(orderType string) orderv1.OrderType {
 	default:
 		return orderv1.OrderType_ORDER_TYPE_UNSPECIFIED
 	}
-}
-
-// parseConID parses a contract ID from a string (helper for future use).
-func parseConID(conIDStr string) (int, error) {
-	conID, err := strconv.Atoi(conIDStr)
-	if err != nil {
-		return 0, fmt.Errorf("invalid contract ID: %w", err)
-	}
-
-	return conID, nil
 }
