@@ -100,3 +100,55 @@ func TestCancelOrder(t *testing.T) {
 		t.Errorf("Status = %v, want CANCELLED", resp.Msg.Status)
 	}
 }
+
+func TestModifyOrder(t *testing.T) {
+	mockClient := new(MockOrderClient)
+	handler := NewOrderServiceHandler(mockClient)
+
+	ctx := middleware.SetAccountIDInContext(context.Background(), "U12345")
+	qty := 20.0
+	req := connect.NewRequest(&orderv1.ModifyOrderRequest{
+		OrderId:  "1001",
+		Quantity: &qty,
+	})
+
+	mockClient.On("ModifyOrder", ctx, "1001", mock.Anything).Return(&ibkr.OrderResponse{
+		OrderID:     "1001",
+		OrderStatus: "Submitted",
+	}, nil)
+
+	resp, err := handler.ModifyOrder(ctx, req)
+	if err != nil {
+		t.Fatalf("ModifyOrder() error = %v", err)
+	}
+
+	if resp.Msg.OrderId != "1001" {
+		t.Errorf("OrderID = %v, want 1001", resp.Msg.OrderId)
+	}
+}
+
+func TestListOrders(t *testing.T) {
+	mockClient := new(MockOrderClient)
+	handler := NewOrderServiceHandler(mockClient)
+
+	ctx := middleware.SetAccountIDInContext(context.Background(), "U12345")
+	limit := int32(10)
+	req := connect.NewRequest(&orderv1.ListOrdersRequest{
+		Limit: &limit,
+	})
+
+	orders := []ibkr.Order{
+		{OrderID: "1001", Status: "Submitted", Ticker: "AAPL"},
+		{OrderID: "1002", Status: "Filled", Ticker: "GOOGL"},
+	}
+	mockClient.On("GetLiveOrders", ctx).Return(orders, nil)
+
+	resp, err := handler.ListOrders(ctx, req)
+	if err != nil {
+		t.Fatalf("ListOrders() error = %v", err)
+	}
+
+	if len(resp.Msg.Orders) != 2 {
+		t.Errorf("Orders count = %v, want 2", len(resp.Msg.Orders))
+	}
+}

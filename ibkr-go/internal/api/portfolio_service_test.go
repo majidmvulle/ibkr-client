@@ -62,3 +62,25 @@ func TestGetAccountSummary(t *testing.T) {
 		t.Errorf("NetLiquidation units = %v, want 10000", resp.Msg.AccountSummary.NetLiquidation.Units)
 	}
 }
+
+func TestGetPositions(t *testing.T) {
+	mockClient := new(MockPortfolioClient)
+	handler := NewPortfolioServiceHandler(mockClient)
+
+	ctx := middleware.SetAccountIDInContext(context.Background(), "U12345")
+	req := connect.NewRequest(&portfoliov1.GetPositionsRequest{})
+
+	positions := []ibkr.Position{
+		{ContractDesc: "AAPL", Position: 10, MktValue: 1500, Currency: "USD"},
+	}
+	mockClient.On("GetPortfolio", ctx).Return(positions, nil)
+
+	resp, err := handler.GetPositions(ctx, req)
+	if err != nil {
+		t.Fatalf("GetPositions() error = %v", err)
+	}
+
+	if len(resp.Msg.Positions) != 1 {
+		t.Errorf("Positions count = %v, want 1", len(resp.Msg.Positions))
+	}
+}
