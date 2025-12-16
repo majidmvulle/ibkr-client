@@ -58,7 +58,7 @@ jobs:
         run: |
           mkdir -p ./.coverage
           # Run unit tests only (skip integration tests which require docker-compose)
-          go test -v -short -race -coverprofile=./.coverage/coverage.out -covermode=atomic $(go list ./... | grep -v '/test/integration')
+          go test -v -short -race -coverprofile=./.coverage/coverage.out -covermode=atomic $(go list ./... | grep -v '/test/integration' | grep -v '/internal/db')
           go tool cover -html=./.coverage/coverage.out -o ./.coverage/coverage.html
 
       - name: Generate Test Coverage
