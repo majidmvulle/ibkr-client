@@ -16,6 +16,7 @@ func TestValidate(t *testing.T) {
 			cfg: &Config{
 				AppName:        "test",
 				DBWriteDSN:     "postgres://test",
+				DBReadDSN:      "postgres://test-read",
 				IBKRGatewayURL: "http://localhost:5000",
 				IBKRAccountID:  "U12345",
 				EncryptionKey:  []byte("0123456789abcdef0123456789abcdef"),
@@ -102,6 +103,7 @@ func TestLoadWithDefaults(t *testing.T) {
 	// Set only required vars
 	os.Setenv("APP_NAME", "test")
 	os.Setenv("DB_WRITE_DSN", "postgres://test")
+	os.Setenv("DB_READ_DSN", "postgres://test-read")
 	os.Setenv("IBKR_GATEWAY_URL", "http://localhost:5000")
 	os.Setenv("IBKR_ACCOUNT_ID", "U12345")
 	os.Setenv("ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef")
@@ -112,8 +114,8 @@ func TestLoadWithDefaults(t *testing.T) {
 	}
 
 	// Check defaults
-	if cfg.AppEnv != "development" {
-		t.Errorf("Default AppEnv = %v, want development", cfg.AppEnv)
+	if cfg.AppEnv != "local" {
+		t.Errorf("Default AppEnv = %v, want local", cfg.AppEnv)
 	}
 	if cfg.HTTPPort != 8080 {
 		t.Errorf("Default HTTPPort = %v, want 8080", cfg.HTTPPort)

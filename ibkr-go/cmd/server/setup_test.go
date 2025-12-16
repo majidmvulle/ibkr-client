@@ -15,7 +15,10 @@ func TestSetupServer_AllPaths(t *testing.T) {
 		MTLSEnabled: false,
 	}
 
-	srv := setupServer(cfg, nil, nil, nil)
+	srv, err := setupServer(cfg, nil, nil, nil)
+	if err != nil {
+		t.Fatalf("setupServer error = %v", err)
+	}
 	if srv == nil {
 		t.Fatal("setupServer should not return nil")
 	}

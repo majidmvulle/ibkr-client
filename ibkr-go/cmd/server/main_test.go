@@ -13,7 +13,10 @@ func TestSetupServer(t *testing.T) {
 		MTLSEnabled: false,
 	}
 
-	server := setupServer(cfg, nil, nil, nil)
+	server, err := setupServer(cfg, nil, nil, nil)
+	if err != nil {
+		t.Fatalf("setupServer() error = %v", err)
+	}
 	if server == nil {
 		t.Fatal("setupServer() returned nil")
 	}
@@ -36,10 +39,13 @@ func TestSetupServerWithMTLS(t *testing.T) {
 		MTLSCACertPath:     "/nonexistent/ca.pem",
 	}
 
-	// This will fail to configure TLS due to missing files, but we're testing the setup flow
-	server := setupServer(cfg, nil, nil, nil)
-	if server == nil {
-		t.Fatal("setupServer() returned nil")
+	// This will fail to configure TLS due to missing files
+	server, err := setupServer(cfg, nil, nil, nil)
+	if err == nil {
+		t.Fatal("setupServer() expected error due to missing certs")
+	}
+	if server != nil {
+		t.Error("setupServer() expected nil server on error")
 	}
 }
 

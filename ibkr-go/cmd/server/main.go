@@ -73,7 +73,11 @@ func main() {
 	logger.Info("Services initialized successfully")
 
 	// Create and start HTTP server.
-	server := setupServer(cfg, db, ibkrClient, sessionService)
+	server, err := setupServer(cfg, db, ibkrClient, sessionService)
+	if err != nil {
+		logger.Error("Failed to setup server", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 	startServer(server, logger, cfg.MTLSEnabled)
 
 	// Wait for shutdown signal.
@@ -142,7 +146,7 @@ func setupServer(
 	db *database.DB,
 	ibkrClient *ibkr.Client,
 	sessionService *session.Service,
-) *http.Server {
+) (*http.Server, error) {
 	logger := slog.Default()
 	mux := http.NewServeMux()
 
@@ -197,12 +201,11 @@ func setupServer(
 	// Configure TLS if enabled.
 	if cfg.MTLSEnabled {
 		if err := configureTLS(server, cfg); err != nil {
-			logger.Error("Failed to configure TLS", slog.String("error", err.Error()))
-			os.Exit(1)
+			return nil, fmt.Errorf("failed to configure TLS: %w", err)
 		}
 	}
 
-	return server
+	return server, nil
 }
 
 func startServer(server *http.Server, logger *slog.Logger, tlsEnabled bool) {
