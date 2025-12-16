@@ -67,5 +67,6 @@ func (d *DB) Health(ctx context.Context) error {
 	if d.Pool == nil {
 		return fmt.Errorf("database pool is not initialized")
 	}
+
 	return d.Pool.Ping(ctx)
 }
