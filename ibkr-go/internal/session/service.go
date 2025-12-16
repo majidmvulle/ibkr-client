@@ -9,7 +9,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/crypto"
-	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/database"
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/db"
 )
 
@@ -22,19 +21,19 @@ const (
 
 // Service handles session management operations.
 type Service struct {
-	db            *database.DB
+	querier       db.Querier
 	encryptionKey []byte
 	sessionTTL    time.Duration
 }
 
 // NewService creates a new session service.
-func NewService(db *database.DB, encryptionKey []byte, sessionTTL time.Duration) *Service {
+func NewService(querier db.Querier, encryptionKey []byte, sessionTTL time.Duration) *Service {
 	if sessionTTL == 0 {
 		sessionTTL = DefaultSessionTTL
 	}
 
 	return &Service{
-		db:            db,
+		querier:       querier,
 		encryptionKey: encryptionKey,
 		sessionTTL:    sessionTTL,
 	}
@@ -75,7 +74,7 @@ func (s *Service) Create(ctx context.Context, accountID string) (string, error) 
 		},
 	}
 
-	session, err := s.db.Queries.CreateSession(ctx, params)
+	session, err := s.querier.CreateSession(ctx, params)
 	if err != nil {
 		return "", fmt.Errorf("failed to create session: %w", err)
 	}
@@ -91,7 +90,7 @@ func (s *Service) Validate(ctx context.Context, token string) (string, error) {
 	tokenHash := crypto.HashToken(token)
 
 	// Get session from database (query already filters expired sessions).
-	session, err := s.db.Queries.GetSessionByHash(ctx, tokenHash)
+	session, err := s.querier.GetSessionByHash(ctx, tokenHash)
 	if err != nil {
 		return "", fmt.Errorf("session not found: %w", err)
 	}
@@ -116,7 +115,7 @@ func (s *Service) Delete(ctx context.Context, token string) error {
 	tokenHash := crypto.HashToken(token)
 
 	// Delete the session.
-	if err := s.db.Queries.DeleteSessionByHash(ctx, tokenHash); err != nil {
+	if err := s.querier.DeleteSessionByHash(ctx, tokenHash); err != nil {
 		return fmt.Errorf("failed to delete session: %w", err)
 	}
 
@@ -125,7 +124,7 @@ func (s *Service) Delete(ctx context.Context, token string) error {
 
 // CleanupExpired deletes all expired sessions.
 func (s *Service) CleanupExpired(ctx context.Context) error {
-	if err := s.db.Queries.DeleteExpiredSessions(ctx); err != nil {
+	if err := s.querier.DeleteExpiredSessions(ctx); err != nil {
 		return fmt.Errorf("failed to cleanup expired sessions: %w", err)
 	}
 

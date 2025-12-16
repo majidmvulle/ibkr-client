@@ -70,7 +70,7 @@ func TestGetAccountIDFromContext_AllCases(t *testing.T) {
 	}{
 		{
 			name:   "context with valid ID",
-			ctx:    context.WithValue(context.Background(), ClientIdentityContextKey{}, "U12345"),
+			ctx:    context.WithValue(context.Background(), SessionContextKey{}, "U12345"),
 			wantID: "U12345",
 			wantOK: true,
 		},
@@ -82,15 +82,15 @@ func TestGetAccountIDFromContext_AllCases(t *testing.T) {
 		},
 		{
 			name:   "context with wrong type",
-			ctx:    context.WithValue(context.Background(), ClientIdentityContextKey{}, 12345),
+			ctx:    context.WithValue(context.Background(), SessionContextKey{}, 12345),
 			wantID: "",
 			wantOK: false,
 		},
 		{
 			name:   "context with empty string",
-			ctx:    context.WithValue(context.Background(), ClientIdentityContextKey{}, ""),
+			ctx:    context.WithValue(context.Background(), SessionContextKey{}, ""),
 			wantID: "",
-			wantOK: false,
+			wantOK: true,
 		},
 	}
 

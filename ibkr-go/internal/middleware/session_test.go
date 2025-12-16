@@ -2,8 +2,41 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
+
+	"connectrpc.com/connect"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/crypto"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/db"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/session"
+	"github.com/stretchr/testify/mock"
 )
+
+// MockQuerier is a mock implementation of db.Querier
+type MockQuerier struct {
+	mock.Mock
+}
+
+func (m *MockQuerier) CreateSession(ctx context.Context, arg db.CreateSessionParams) (db.Session, error) {
+	args := m.Called(ctx, arg)
+	return args.Get(0).(db.Session), args.Error(1)
+}
+
+func (m *MockQuerier) DeleteExpiredSessions(ctx context.Context) error {
+	args := m.Called(ctx)
+	return args.Error(0)
+}
+
+func (m *MockQuerier) DeleteSessionByHash(ctx context.Context, sessionTokenHash string) error {
+	args := m.Called(ctx, sessionTokenHash)
+	return args.Error(0)
+}
+
+func (m *MockQuerier) GetSessionByHash(ctx context.Context, sessionTokenHash string) (db.Session, error) {
+	args := m.Called(ctx, sessionTokenHash)
+	return args.Get(0).(db.Session), args.Error(1)
+}
 
 func TestExtractToken(t *testing.T) {
 	tests := []struct {
@@ -193,5 +226,87 @@ func TestContextChaining(t *testing.T) {
 	otherVal, ok := ctx.Value(otherKey{}).(string)
 	if !ok || otherVal != "other value" {
 		t.Errorf("Other value not found or incorrect: %v", otherVal)
+	}
+}
+
+func TestSessionInterceptor_NoAuthHeader(t *testing.T) {
+	mockQuerier := new(MockQuerier)
+	svc := session.NewService(mockQuerier, []byte("key"), time.Hour)
+	interceptor := NewSessionInterceptor(svc)
+
+	handler := func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		return connect.NewResponse(&struct{}{}), nil
+	}
+	wrapped := interceptor(handler)
+
+	req := connect.NewRequest(&struct{}{})
+	// No header
+	_, err := wrapped(context.Background(), req)
+	if err == nil {
+		t.Error("Expected error for missing auth header")
+	}
+	if connect.CodeOf(err) != connect.CodeUnauthenticated {
+		t.Errorf("Expected Unauthenticated, got %v", connect.CodeOf(err))
+	}
+}
+
+func TestSessionInterceptor_InvalidToken(t *testing.T) {
+	mockQuerier := new(MockQuerier)
+	svc := session.NewService(mockQuerier, []byte("12345678901234567890123456789012"), time.Hour)
+	interceptor := NewSessionInterceptor(svc)
+
+	handler := func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		return connect.NewResponse(&struct{}{}), nil
+	}
+	wrapped := interceptor(handler)
+
+	req := connect.NewRequest(&struct{}{})
+	req.Header().Set("Authorization", "Bearer invalid-token")
+
+	mockQuerier.On("GetSessionByHash", mock.Anything, mock.Anything).Return(db.Session{}, errors.New("not found"))
+
+	_, err := wrapped(context.Background(), req)
+	if err == nil {
+		t.Error("Expected error for invalid token")
+	}
+	if connect.CodeOf(err) != connect.CodeUnauthenticated {
+		t.Errorf("Expected Unauthenticated, got %v", connect.CodeOf(err))
+	}
+}
+
+func TestSessionInterceptor_Success(t *testing.T) {
+	mockQuerier := new(MockQuerier)
+	key := []byte("12345678901234567890123456789012")
+	svc := session.NewService(mockQuerier, key, time.Hour)
+	interceptor := NewSessionInterceptor(svc)
+
+	accountID := "acc-123"
+	token := "valid-token"
+	tokenHash := crypto.HashToken(token)
+	encryptedToken, _ := crypto.EncryptToken([]byte(token), key)
+
+	sessionData := db.Session{
+		AccountID:             accountID,
+		SessionTokenEncrypted: encryptedToken,
+	}
+
+	mockQuerier.On("GetSessionByHash", mock.Anything, tokenHash).Return(sessionData, nil)
+
+	handler := func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		// Verify account ID is in context
+		id, ok := GetAccountIDFromContext(ctx)
+		if !ok || id != accountID {
+			return nil, errors.New("account ID not found in context")
+		}
+		return connect.NewResponse(&struct{}{}), nil
+	}
+	wrapped := interceptor(handler)
+
+	req := connect.NewRequest(&struct{}{})
+	req.Header().Set("Authorization", "Bearer "+token)
+
+	_, err := wrapped(context.Background(), req)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
 	}
 }
