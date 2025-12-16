@@ -78,6 +78,7 @@ func main() {
 		logger.Error("Failed to setup server", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+
 	startServer(server, logger, cfg.MTLSEnabled)
 
 	// Wait for shutdown signal.

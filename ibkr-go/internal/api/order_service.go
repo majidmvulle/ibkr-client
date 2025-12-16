@@ -32,11 +32,11 @@ const (
 
 // OrderServiceHandler implements the OrderService ConnectRPC service.
 type OrderServiceHandler struct {
-	ibkrClient *ibkr.Client
+	ibkrClient ibkr.OrderClient
 }
 
 // NewOrderServiceHandler creates a new OrderService handler.
-func NewOrderServiceHandler(ibkrClient *ibkr.Client) orderv1connect.OrderServiceHandler {
+func NewOrderServiceHandler(ibkrClient ibkr.OrderClient) orderv1connect.OrderServiceHandler {
 	return &OrderServiceHandler{
 		ibkrClient: ibkrClient,
 	}

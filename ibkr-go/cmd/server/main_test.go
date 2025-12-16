@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
+	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/config"
+	"github.com/majidmvulle/ibkr-client/ibkr-go/internal/database"
 )
 
 func TestSetupServer(t *testing.T) {
@@ -61,4 +66,80 @@ func TestWaitForShutdown(t *testing.T) {
 		// Function will block waiting for signal, so we run it in goroutine
 		waitForShutdown(server, nil)
 	}()
+}
+
+func TestSetupLogger(t *testing.T) {
+	cfg := &config.Config{
+		AppDebug: true,
+	}
+	logger := setupLogger(cfg)
+	if logger == nil {
+		t.Error("setupLogger returned nil")
+	}
+}
+
+func TestInitTelemetry(t *testing.T) {
+	cfg := &config.Config{
+		AppName:               "test",
+		OtelCollectorEndpoint: "",
+	}
+	logger := slog.Default()
+	tp := initTelemetry(context.Background(), cfg, logger)
+	if tp == nil {
+		t.Error("initTelemetry returned nil")
+	}
+}
+
+func TestShutdownTelemetry(t *testing.T) {
+	logger := slog.Default()
+	// Test with nil
+	shutdownTelemetry(nil, logger)
+
+	// Test with valid provider (no-op)
+	cfg := &config.Config{AppName: "test"}
+	tp := initTelemetry(context.Background(), cfg, logger)
+	shutdownTelemetry(tp, logger)
+}
+
+func TestStartServer(t *testing.T) {
+	server := &http.Server{Addr: ":0"}
+	logger := slog.Default()
+
+	// Test without TLS
+	startServer(server, logger, false)
+
+	// Give it a moment to start
+	time.Sleep(10 * time.Millisecond)
+
+	// Close it
+	server.Close()
+}
+
+func TestHealthCheck(t *testing.T) {
+	cfg := &config.Config{HTTPPort: 8080}
+	server, _ := setupServer(cfg, nil, nil, nil)
+
+	req := httptest.NewRequest("GET", "/healthz", nil)
+	w := httptest.NewRecorder()
+
+	server.Handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Status = %v, want %v", w.Code, http.StatusOK)
+	}
+}
+
+func TestReadinessCheck_DatabaseUnhealthy(t *testing.T) {
+	cfg := &config.Config{HTTPPort: 8080}
+	db := &database.DB{} // Pool is nil, Health() should return error
+	server, _ := setupServer(cfg, db, nil, nil)
+
+	req := httptest.NewRequest("GET", "/readyz", nil)
+	w := httptest.NewRecorder()
+
+	server.Handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusServiceUnavailable {
+		t.Errorf("Status = %v, want %v", w.Code, http.StatusServiceUnavailable)
+	}
 }

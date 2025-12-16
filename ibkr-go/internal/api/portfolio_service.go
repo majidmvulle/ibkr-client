@@ -16,11 +16,11 @@ const percentageMultiplier = 100
 
 // PortfolioServiceHandler implements the PortfolioService ConnectRPC service.
 type PortfolioServiceHandler struct {
-	ibkrClient *ibkr.Client
+	ibkrClient ibkr.PortfolioClient
 }
 
 // NewPortfolioServiceHandler creates a new PortfolioService handler.
-func NewPortfolioServiceHandler(ibkrClient *ibkr.Client) portfoliov1connect.PortfolioServiceHandler {
+func NewPortfolioServiceHandler(ibkrClient ibkr.PortfolioClient) portfoliov1connect.PortfolioServiceHandler {
 	return &PortfolioServiceHandler{
 		ibkrClient: ibkrClient,
 	}

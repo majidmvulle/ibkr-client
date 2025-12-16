@@ -19,11 +19,11 @@ const (
 
 // MarketDataServiceHandler implements the MarketDataService ConnectRPC service.
 type MarketDataServiceHandler struct {
-	ibkrClient *ibkr.Client
+	ibkrClient ibkr.MarketDataClient
 }
 
 // NewMarketDataServiceHandler creates a new MarketDataService handler.
-func NewMarketDataServiceHandler(ibkrClient *ibkr.Client) marketdatav1connect.MarketDataServiceHandler {
+func NewMarketDataServiceHandler(ibkrClient ibkr.MarketDataClient) marketdatav1connect.MarketDataServiceHandler {
 	return &MarketDataServiceHandler{
 		ibkrClient: ibkrClient,
 	}
