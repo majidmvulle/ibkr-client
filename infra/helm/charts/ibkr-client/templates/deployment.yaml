@@ -93,7 +93,9 @@ spec:
               mountPath: {{ .Values.tls.caCertPath }}
               readOnly: true
             {{- end }}
-            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
@@ -148,10 +150,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.secretName }}
                   key: {{ .Values.secrets.keys.ibkrAccountID }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
         # IBKR Gateway sidecar container
         - name: ibkr-gateway
           image: {{ include "ibkr-client.ibkrGatewayImage" . }}
@@ -206,7 +204,9 @@ spec:
               - key: ca.crt
                 path: ca.crt
         {{- end }}
-        {{- toYaml .Values.volumes | nindent 8 }}
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
