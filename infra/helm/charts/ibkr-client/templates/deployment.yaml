@@ -65,13 +65,13 @@ spec:
             - name: http
               containerPort: {{ .Values.config.httpPort }}
               protocol: TCP
-            - name: grpc
-              containerPort: {{ .Values.config.grpcPort }}
-              protocol: TCP
           livenessProbe:
             httpGet:
               path: /healthz
               port: http
+              {{- if .Values.tls.enabled }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
@@ -80,6 +80,9 @@ spec:
             httpGet:
               path: /readyz
               port: http
+              {{- if .Values.tls.enabled }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3
@@ -109,8 +112,6 @@ spec:
               value: {{ .Values.config.appVersion | quote }}
             - name: APP_HTTP_PORT
               value: {{ .Values.config.httpPort | quote }}
-            - name: APP_GRPC_PORT
-              value: {{ .Values.config.grpcPort | quote }}
             - name: APP_LOG_LEVEL
               value: {{ .Values.config.logLevel | quote }}
             - name: DB_LOG_LEVEL
@@ -161,23 +162,31 @@ spec:
               containerPort: {{ .Values.ibkrGateway.port }}
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /v1/api/tickle
-              port: gateway
+            exec:
+              command:
+                - nc
+                - -z
+                - localhost
+                - "{{ .Values.ibkrGateway.port }}"
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
-            httpGet:
-              path: /v1/api/tickle
-              port: gateway
+            exec:
+              command:
+                - nc
+                - -z
+                - localhost
+                - "{{ .Values.ibkrGateway.port }}"
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           resources:
-            {{- toYaml .Values.ibkrGatewayResources | nindent 12 }}
+            {{- if .Values.ibkrGatewayResources }}
+              {{- toYaml .Values.ibkrGatewayResources | nindent 12 }}
+            {{- end }}
           env:
             - name: GATEWAY_PORT
               value: "{{ .Values.ibkrGateway.port }}"
