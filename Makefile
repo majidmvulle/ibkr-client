@@ -1,4 +1,4 @@
-.PHONY: help proto proto-lint build test test-unit test-integration test-coverage go-lint sqlc-generate docker-build docker-push helm-package helm-push dev-up dev-down dev-logs dev-restart migrate-up migrate-down clean
+.PHONY: help proto proto-lint build test test-unit test-integration test-coverage go-lint sqlc-generate docker-build-gateway docker-build-server docker-build-migrations docker-build docker-push-gateway docker-push-migrations docker-push-server docker-push helm-package helm-push dev-up dev-down dev-logs dev-restart migrate-up migrate-down clean
 
 help:
 	@echo "Available targets:"
@@ -11,7 +11,13 @@ help:
 	@echo "  test-coverage          - Run tests with coverage report"
 	@echo "  go-lint                - Lint all Go modules"
 	@echo "  sqlc-generate          - Generate type-safe Go code from SQL"
+	@echo "  docker-build-gateway   - Build IBKR Gateway image"
+	@echo "  docker-build-server    - Build server image"
+	@echo "  docker-build-migrations - Build migrations image"
 	@echo "  docker-build           - Build all images (server, migrations, gateway) for multiple platforms"
+	@echo "  docker-push-gateway    - Push IBKR Gateway image"
+	@echo "  docker-push-migrations - Push migrations image"
+	@echo "  docker-push-server     - Push server image"
 	@echo "  docker-push            - Push all images to registry"
 	@echo "  helm-package           - Package Helm chart"
 	@echo "  helm-push              - Package and push Helm chart to OCI registry"
@@ -75,58 +81,66 @@ go-lint:
 sqlc-generate:
 	cd ibkr-go && sqlc generate
 
-docker-build:
-	@echo "Building all images for $(PLATFORMS)..."
+docker-build-gateway:
+		@echo "Building IBKR Gateway image..."
+	docker buildx build \
+		--load \
+		--platform $(PLATFORMS) \
+		-t $(GATEWAY_IMAGE):$(VERSION) \
+		-t $(GATEWAY_IMAGE):latest \
+		-f ibkr-gateway/Dockerfile \
+		ibkr-gateway/
+
+docker-build-server:
 	@echo "Building server image..."
 	docker buildx build \
+		--load \
 		--platform $(PLATFORMS) \
 		-t $(SERVER_IMAGE):$(VERSION) \
 		-t $(SERVER_IMAGE):latest \
 		-f ibkr-go/Dockerfile \
 		ibkr-go/
+
+docker-build-migrations:
 	@echo "Building migrations image..."
 	docker buildx build \
+		--load \
 		--platform $(PLATFORMS) \
 		-t $(MIGRATIONS_IMAGE):$(VERSION) \
 		-t $(MIGRATIONS_IMAGE):latest \
 		-f ibkr-go/Dockerfile.migrations \
 		ibkr-go/
-	@echo "Building IBKR Gateway image..."
-	docker buildx build \
-		--platform $(PLATFORMS) \
-		-t $(GATEWAY_IMAGE):$(VERSION) \
-		-t $(GATEWAY_IMAGE):latest \
-		-f ibkr-gateway/Dockerfile \
-		ibkr-gateway/
+
+
+docker-build:
+	@echo "Building all images for $(PLATFORMS)..."
+	@make docker-build-gateway docker-build-server docker-build-migrations
 	@echo "All images built successfully!"
 
-docker-push:
-	@echo "Pushing all images to $(REGISTRY)..."
-	@echo "Pushing server image..."
-	docker buildx build \
-		--platform $(PLATFORMS) \
-		--push \
-		-t $(SERVER_IMAGE):$(VERSION) \
-		-t $(SERVER_IMAGE):latest \
-		-f ibkr-go/Dockerfile \
-		ibkr-go/
-	@echo "Pushing migrations image..."
-	docker buildx build \
-		--platform $(PLATFORMS) \
-		--push \
-		-t $(MIGRATIONS_IMAGE):$(VERSION) \
-		-t $(MIGRATIONS_IMAGE):latest \
-		-f ibkr-go/Dockerfile.migrations \
-		ibkr-go/
+docker-push-gateway:
 	@echo "Pushing IBKR Gateway image..."
-	docker buildx build \
-		--platform $(PLATFORMS) \
-		--push \
-		-t $(GATEWAY_IMAGE):$(VERSION) \
-		-t $(GATEWAY_IMAGE):latest \
-		-f ibkr-gateway/Dockerfile \
-		ibkr-gateway/
+	docker push $(GATEWAY_IMAGE):$(VERSION)
+	docker push	$(GATEWAY_IMAGE):latest
+
+docker-push-migrations:
+	@echo "Pushing migrations image..."
+	docker push $(MIGRATIONS_IMAGE):$(VERSION)
+	docker push $(MIGRATIONS_IMAGE):latest
+
+docker-push-server:
+	@echo "Pushing server image..."
+	docker push $(SERVER_IMAGE):$(VERSION)
+	docker push	$(SERVER_IMAGE):latest
+
+docker-push:
+	@echo "Pushing all images to $(REGISTRY), version $(VERSION)..."
+	@make docker-push-gateway docker-push-migrations docker-push-server
 	@echo "All images pushed successfully!"
+
+docker-release:
+	@echo "Releasing all images to $(REGISTRY), version $(VERSION)..."
+	@make docker-build docker-push
+	@echo "All images releases successfully!"
 
 helm-package:
 	@echo "Packaging Helm chart..."
