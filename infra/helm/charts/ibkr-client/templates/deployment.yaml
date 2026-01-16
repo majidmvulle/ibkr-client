@@ -56,7 +56,6 @@ spec:
       containers:
         # Main application container
         - name: {{ .Chart.Name }}
-          command: [""]
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ include "ibkr-client.image" . }}
