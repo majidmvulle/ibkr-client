@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Download official IBKR Client Portal Gateway
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl unzip ca-certificates && \
+    apt-get install -y --no-install-recommends curl unzip ca-certificates netcat-openbsd && \
     curl -L https://download2.interactivebrokers.com/portal/clientportal.gw.zip -o clientportal.gw.zip && \
     unzip clientportal.gw.zip && \
     rm clientportal.gw.zip && \
